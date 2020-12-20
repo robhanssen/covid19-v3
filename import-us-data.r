@@ -10,43 +10,6 @@ library(tidyverse)
 library(lubridate)
 source("config.r")
 
-#
-# import global infections via web API
-#
-
-infocolumnnames = c("Province/State","Country/Region", "Lat","Long")
-infocols = length(infocolumnnames)
-
-global_cases_raw <- read_csv(global_infections_file)
-
-global_cases <- global_cases_raw %>% 
-                     tidydata(., dataname="cases", exclusionvector=infocolumnnames) 
-
-global_cases_growth <- global_cases_raw %>% 
-                     dailydifference(., infocols) %>% 
-                     tidydata(., dataname="cases", exclusionvector=infocolumnnames) %>% 
-                     mutate(time=time+1)
-
-#
-# import global deaths via web API
-#
-
-global_deaths_raw <- read_csv(global_deaths_file)
-
-global_deaths <- global_deaths_raw %>% 
-                     tidydata(., dataname="deaths", exclusionvector=infocolumnnames) 
-
-
-global_deaths_growth <- global_deaths_raw %>% 
-                     dailydifference(., infocols) %>%
-                     tidydata(., dataname="deaths", exclusionvector=infocolumnnames) %>% 
-                     mutate(time=time+1)
-
-# combining all global data
-global_casesdeaths <- global_cases %>% 
-                     inner_join(global_deaths)
-
-save(global_casesdeaths, file="Rdata/global_casesdeaths.Rdata")
 
 #
 # import US cases via web API
@@ -89,6 +52,6 @@ us_casesdeaths = us_cases_growth %>%
                      select("Admin2.x", "Province_State",date,time.x,Population,cases,deaths) %>% 
                      rename(county="Admin2.x", state="Province_State",time="time.x",population=Population)
 
-# View(us_casesdeaths %>% head(100))
 
-save(us_casesdeaths, file="Rdata/us_casesdeaths.Rdata")
+lastreadus = today()
+save(us_casesdeaths, lastreadus, file="Rdata/us_casesdeaths.Rdata")

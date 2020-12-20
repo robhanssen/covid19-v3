@@ -38,4 +38,6 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-Rdata/*.Rdata
+./Rdata/*.Rdata
+*.Rproj
+*.Rdata
