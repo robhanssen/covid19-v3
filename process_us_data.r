@@ -47,7 +47,7 @@ casesdeaths %>% filter( date>="2020-02-01") %>%
                         #annotate("text",x=as.Date("2020-04-10", format="%Y-%m-%d"),y=10000,label="deaths\n------>", color="red") +
                         annotate("text",x=as.Date("2020-03-28", format="%Y-%m-%d"),y=70,label=totalcasecomment, color="black")
 
-ggsave(paste("graphs/covid19-us-cases-and-death.png"))
+ggsave(paste("graphs/covid19-us-cases-and-death.pdf"))
 
 # 
 # 
@@ -78,6 +78,6 @@ for(region in regionlist$location)
                         geom_line(aes(date, correction*deathsper100k), color="red", linetype="dotted")  + 
                         geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") 
 
-        ggsave(paste("graphs/covid19-",region,"cases-and-deaths.png"))
+        ggsave(paste("graphs/covid19-",region,"cases-and-deaths.pdf"))
         
 }
