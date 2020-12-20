@@ -43,8 +43,8 @@ global_deaths_growth <- global_deaths_raw %>%
                      mutate(time=time+1)
 
 # combining all global data
-global_casesdeaths <- global_cases %>% 
-                     inner_join(global_deaths)
+global_casesdeaths <- global_cases_growth %>% 
+                     inner_join(global_deaths_growth)
 
 lastreadglobal = today()
 save(global_casesdeaths, lastreadglobal, file="Rdata/global_casesdeaths.Rdata")
