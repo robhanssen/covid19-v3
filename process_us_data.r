@@ -82,7 +82,68 @@ for(region in regionlist$location)
         
 }
 
+# 
+# 
+#  data per state
+# 
+# 
 
+colorset = c(  "Safe: 0-2 per 100k" = "darkgreen", 
+               "Impacted: 2-5 per 100k" = "lightgreen", 
+               "Moderate: 5-10 per 100k"="yellow", 
+               "Severe: 10-20 per 100k"="orange",
+               "Critical: >20 per 100k"="red", 
+               "Supercritical: >50 per 100k" ="purple")
+
+us_casesdeaths %>% group_by(date,state) %>%
+                        summarize(population = sum(population),
+                                  cases = sum(cases),
+                                  deaths = sum(deaths),
+                                  casesper100k = cases / population * 1e5,
+                                  deathsper100k = deaths / population * 1e5
+                                  ) %>% ungroup() -> casesdeathsbystate
+
+datecutoff = today() - days(7)
+
+daterange = paste0("Data from ", format(datecutoff, format="%b %d"), " to ", format(today(), format="%b %d"))
+
+casesdeathsbystate %>% filter(date > datecutoff) %>% group_by(state) %>%
+                       summarize(casesper100k = mean(casesper100k, na.rm=TRUE),
+                                 deathsper100k = mean(deathsper100k, na.rm=TRUE)
+                                 ) %>%
+                        filter(!is.na(casesper100k), !is.na(deathsper100k)) %>%
+                        mutate(level = cut(casesper100k, 
+                                           breaks=c(-1,2,5,10,20, 50, 1e5),
+                                           labels=c("Safe: 0-2 per 100k",
+                                                     "Impacted: 2-5 per 100k",
+                                                     "Moderate: 5-10 per 100k",
+                                                     "Severe: 10-20 per 100k",
+                                                     "Critical: >20 per 100k", 
+                                                     "Supercritical: >50 per 100k"
+                                                     )
+                                            )
+                                ) -> ratesbystate7days
+
+ratesbystate7days %>% ggplot + aes(x=fct_reorder(state,casesper100k), y=casesper100k, fill=level) + 
+                               scale_y_continuous(breaks=c(2,5,10,20,50)) +
+                               geom_bar(stat="identity") + 
+                               coord_flip() + 
+                               scale_fill_manual(values=colorset)
+
+ggsave(paste0("graphs/covid19-casesbystate_ranking.pdf"))
+
+
+statemapdata <- as_tibble(map_data("state")) %>% 
+                        rename(state=region) %>%
+                        inner_join(ratesbystate7days %>% mutate(state=tolower(state))) 
+
+ggplot(data = statemapdata) + 
+  geom_polygon(aes(x = long, y = lat, fill = level, group = group), color = "white") + scale_fill_manual(values=colorset) + 
+  ggtitle("Week-average daily infection rate across the United States (in new infections/day)") + 
+  labs(fill="Infection level", caption=daterange) +
+  coord_fixed(1.4) 
+
+ggsave("graphs/covid19_usmap_infections.pdf", width=11, height=8)
 
 # 
 # 
