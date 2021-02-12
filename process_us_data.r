@@ -127,6 +127,7 @@ casesdeathsbystate %>% filter(date > datecutoff) %>% group_by(state) %>%
 ratesbystate7days %>% ggplot + aes(x=fct_reorder(state,casesper100k), y=casesper100k, fill=level) + 
                                scale_y_continuous(breaks=c(2,5,10,20,50)) +
                                geom_bar(stat="identity") + 
+                               labs(x="State", y="Daily new infection per 100,000 population", caption=daterange) +
                                coord_flip() + 
                                scale_fill_manual(values=colorset)
 
