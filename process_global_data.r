@@ -34,7 +34,7 @@ casesdeaths %>% group_by(date,time) %>%
                         scale_y_continuous(sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + #scale_y_log10(limit=c(10,100000))+ 
                         scale_x_date(date_breaks="3 months", date_labels = "%b %d") + #facet_wrap(~location) + 
                         labs(caption=capt) + xlab("Date") + ylab("Daily incremental number of confirmed cases or deaths") +
-                        ggtitle(paste("US daily cases and deaths with", avdays,"days average line")) + 
+                        ggtitle(paste("Global daily cases and deaths with", avdays,"days average line")) + 
                         geom_line(aes(date, correction*deathsper100k), color="red", linetype="dotted")  + geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") +
                         #annotate("text",x=as.Date("2020-03-15", format="%Y-%m-%d"),y=20000,label="cases\n<-----", color="blue") + 
                         #annotate("text",x=as.Date("2020-04-10", format="%Y-%m-%d"),y=10000,label="deaths\n------>", color="red") +
