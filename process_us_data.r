@@ -51,7 +51,7 @@ ggsave(paste0("graphs/covid19-us-cases-and-death.pdf"))
 
 # 
 # 
-# 
+# data per US region 
 # 
 # 
 
@@ -81,3 +81,62 @@ for(region in regionlist$location)
         ggsave(paste0("graphs/covid19-",region,"cases-and-deaths.pdf"))
         
 }
+
+
+
+# 
+# 
+# data per for South Carolina
+# 
+# 
+us_casesdeaths %>% filter(state=="South Carolina") %>%
+                        group_by(date) %>%
+                        summarize(population = sum(population),
+                                  cases = sum(cases),
+                                  deaths = sum(deaths),
+                                  casesper100k = cases / population * 1e5,
+                                  deathsper100k = deaths / population * 1e5
+                                  ) %>% ungroup() -> casesdeathsbylocation
+
+
+casesdeathsbylocation %>% filter(date > today() - months(6)) %>%
+                ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
+                        geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
+                        scale_y_continuous(limit=c(0,150), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
+                        scale_x_date(date_breaks="3 months", date_labels = "%b %d") + 
+                        labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
+                        ggtitle(paste("South Carolina daily cases and deaths with", avdays,"days average line")) + 
+                        geom_line(aes(date, correction*deathsper100k), color="red", linetype="dotted")  + 
+                        geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") 
+
+ggsave("graphs/covid19-SC-cases-and-deaths.pdf")
+        
+
+# 
+# 
+# data per for South Carolina (Spartanburg/Greenville)
+# 
+# 
+us_casesdeaths %>% filter(state=="South Carolina") %>%
+                        filter(county=="Spartanburg" | county=="Greenville") %>%
+                        filter(date > today() - months(6)) %>%
+                        group_by(date) %>%
+                        summarize(population = sum(population),
+                                  cases = sum(cases),
+                                  deaths = sum(deaths),
+                                  casesper100k = cases / population * 1e5,
+                                  deathsper100k = deaths / population * 1e5
+                                  ) %>% ungroup() -> casesdeathsbylocation
+
+
+casesdeathsbylocation %>% #filter( location == region) %>%
+                ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
+                        geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
+                        scale_y_continuous(sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
+                        scale_x_date(date_breaks="1 months", date_labels = "%b %d") + 
+                        labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
+                        ggtitle(paste("Greenville/Spartanburg daily cases and deaths with", avdays,"days average line")) + 
+                        geom_line(aes(date, correction*deathsper100k), color="red", linetype="dotted")  + 
+                        geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") 
+
+ggsave("graphs/covid19-SCGSP-cases-and-deaths.pdf")
