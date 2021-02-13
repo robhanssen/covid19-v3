@@ -93,7 +93,8 @@ colorset = c(  "Safe: 0-2 per 100k" = "darkgreen",
                "Moderate: 5-10 per 100k"="yellow", 
                "Severe: 10-20 per 100k"="orange",
                "Critical: >20 per 100k"="red", 
-               "Supercritical: >50 per 100k" ="purple")
+               "Supercritical: >50 per 100k" ="purple",
+               "Grim Reaper: >100 per 100k" ="black")
 
 us_casesdeaths %>% group_by(date,state) %>%
                         summarize(population = sum(population),
@@ -113,19 +114,20 @@ casesdeathsbystate %>% filter(date > datecutoff) %>% group_by(state) %>%
                                  ) %>%
                         filter(!is.na(casesper100k), !is.na(deathsper100k)) %>%
                         mutate(level = cut(casesper100k, 
-                                           breaks=c(-1,2,5,10,20, 50, 1e5),
+                                           breaks=c(-1,2,5,10,20, 50, 100, 1e5),
                                            labels=c("Safe: 0-2 per 100k",
                                                      "Impacted: 2-5 per 100k",
                                                      "Moderate: 5-10 per 100k",
                                                      "Severe: 10-20 per 100k",
                                                      "Critical: >20 per 100k", 
-                                                     "Supercritical: >50 per 100k"
+                                                     "Supercritical: >50 per 100k",
+                                                     "Grim Reaper: >100 per 100k"
                                                      )
                                             )
                                 ) -> ratesbystate7days
 
 ratesbystate7days %>% ggplot + aes(x=fct_reorder(state,casesper100k), y=casesper100k, fill=level) + 
-                               scale_y_continuous(breaks=c(2,5,10,20,50)) +
+                               scale_y_continuous(breaks=c(2,5,10,20,50,100)) +
                                geom_bar(stat="identity") + 
                                labs(x="State", y="Daily new infection per 100,000 population", caption=daterange) +
                                coord_flip() + 
