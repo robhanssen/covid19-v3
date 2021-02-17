@@ -3,7 +3,7 @@
 #
 #
 #
-source = "\U00A9 2020, Rob Hanssen\nData source: Johns Hopkins University"
+source = "\U00A9 2021, Rob Hanssen\nData source: Johns Hopkins University"
 
 
 # data files
