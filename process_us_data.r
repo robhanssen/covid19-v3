@@ -108,6 +108,8 @@ datecutoff = today() - days(7)
 
 daterange = paste0("Data from ", format(datecutoff, format="%b %d"), " to ", format(today(), format="%b %d"))
 
+caption = paste0(source,"\n",daterange)
+
 casesdeathsbystate %>% filter(date > datecutoff) %>% group_by(state) %>%
                        summarize(casesper100k = mean(casesper100k, na.rm=TRUE),
                                  deathsper100k = mean(deathsper100k, na.rm=TRUE)
@@ -129,7 +131,7 @@ casesdeathsbystate %>% filter(date > datecutoff) %>% group_by(state) %>%
 ratesbystate7days %>% ggplot + aes(x=fct_reorder(state,casesper100k), y=casesper100k, fill=level) + 
                                scale_y_continuous(breaks=c(2,5,10,20,50,100)) +
                                geom_bar(stat="identity") + 
-                               labs(x="State", y="Daily new infection per 100,000 population", caption=daterange) +
+                               labs(x="State", y="Daily new infection per 100,000 population", caption=caption) +
                                coord_flip() + 
                                scale_fill_manual(values=colorset)
 
@@ -143,7 +145,7 @@ statemapdata <- as_tibble(map_data("state")) %>%
 ggplot(data = statemapdata) + 
   geom_polygon(aes(x = long, y = lat, fill = level, group = group), color = "white") + scale_fill_manual(values=colorset) + 
   ggtitle("Week-average daily infection rate across the United States (in new infections/day)") + 
-  labs(fill="Infection level", caption=daterange) +
+  labs(fill="Infection level", caption=caption) +
   coord_fixed(1.4) 
 
 ggsave("graphs/covid19_usmap_infections.pdf", width=11, height=8)
