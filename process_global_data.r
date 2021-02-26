@@ -54,3 +54,81 @@ casesdeaths %>%
                             filter(casesper100k < 400) %>%
                 ggplot() + aes(x=date, y=casesper100k) + geom_line(color="blue",lty=2) + facet_wrap(~continent) + 
                 geom_line(aes(date,deathsper100k*correction), color="red", lty=2)
+
+
+datecutoff = today() - days(7)
+
+casesdeaths %>% filter(date > aweekago, population > 5e6) %>% group_by(country) %>%
+                summarize(cases=sum(cases), 
+                          deaths=sum(deaths),
+                          population=sum(population, na.rm=T),
+                          casesper100k = mean(cases, na.rm=TRUE)/population * 1e5,
+                          deathsper100k = mean(deaths, na.rm=TRUE)/population * 1e5
+                          ) %>% top_n(30, casesper100k) %>%
+                ggplot + aes(x=fct_reorder(country,casesper100k), y=casesper100k) + 
+                        geom_bar(stat="identity") + 
+                        labs(x="Country with population > 5 million", y="Average cases per day per 100k") +
+                        coord_flip()
+
+
+colorset = c(  "Safe: 0-2 per 100k" = "darkgreen", 
+               "Impacted: 2-5 per 100k" = "lightgreen", 
+               "Moderate: 5-10 per 100k"="yellow", 
+               "Severe: 10-20 per 100k"="orange",
+               "Critical: >20 per 100k"="red", 
+               "Supercritical: >50 per 100k" ="purple",
+               "Grim Reaper: >100 per 100k" ="black")
+
+daterange = paste0("Data from ", format(datecutoff, format="%b %d"), " to ", format(today(), format="%b %d"))
+
+caption = paste0(source,"\n",daterange)
+
+casesdeaths %>% filter(date > datecutoff) %>% group_by(country) %>%
+                summarize(cases=sum(cases), 
+                          deaths=sum(deaths),
+                          population=sum(population, na.rm=T),
+                          casesper100k = mean(cases, na.rm=TRUE)/population * 1e5,
+                          deathsper100k = mean(deaths, na.rm=TRUE)/population * 1e5
+                          ) %>%
+                        filter(!is.na(casesper100k), !is.na(deathsper100k)) %>%
+                        mutate(level = cut(casesper100k, 
+                                           breaks=c(-1,2,5,10,20, 50, 100, 1e5),
+                                           labels=c("Safe: 0-2 per 100k",
+                                                     "Impacted: 2-5 per 100k",
+                                                     "Moderate: 5-10 per 100k",
+                                                     "Severe: 10-20 per 100k",
+                                                     "Critical: >20 per 100k", 
+                                                     "Supercritical: >50 per 100k",
+                                                     "Grim Reaper: >100 per 100k"
+                                                     )
+                                            )
+                                ) -> ratesbycountry7days
+
+ratesbycountry7days %>% filter(!is.na(level), population > 5e6) %>% top_n(30,casesper100k) %>%
+                        ggplot + aes(x=fct_reorder(country,casesper100k), y=casesper100k, fill=level) + 
+                               scale_y_continuous(breaks=c(2,5,10,20,50,100)) +
+                               geom_bar(stat="identity") + 
+                               labs(x="Countries with population over 5 million", y="Daily new infection per 100,000 population", caption=caption) +
+                               coord_flip() + 
+                               scale_fill_manual(values=colorset)
+
+ggsave(paste0("graphs/covid19-casesbycountry_ranking.pdf"), width=8, height=11)
+
+ratesbycountry7days$country[ratesbycountry7days$country=="US"] = "USA"
+ratesbycountry7days$country[ratesbycountry7days$country=="Czechia"] = "Czech Republic"
+ratesbycountry7days$country[ratesbycountry7days$country=="Congo (Kinshasa)"] = "Democratic Republic of the Congo"
+
+
+worldmapdata <- as_tibble(map_data("world")) %>% 
+                        rename(country=region) %>%
+                        inner_join(ratesbycountry7days %>% mutate(state=tolower(country))) 
+
+worldmapdata$country[worldmapdata$country=="usa"] = "USA"
+
+ggplot(data = worldmapdata) + 
+  geom_polygon(aes(x = long, y = lat, fill = level, group = group), color = "white") + scale_fill_manual(values=colorset) + 
+  ggtitle("Week-average daily infection rate across the world (in new infections/day)") + 
+  labs(fill="Infection level", caption=caption) +
+  coord_fixed(1.3) 
+
+ggsave(paste0("graphs/covid19-worldmap.pdf"), width=11, height=8)
