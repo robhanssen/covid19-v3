@@ -58,7 +58,7 @@ casesdeaths %>%
 
 datecutoff = today() - days(7)
 
-casesdeaths %>% filter(date > aweekago, population > 5e6) %>% group_by(country) %>%
+casesdeaths %>% filter(date > datecutoff, population > 5e6) %>% group_by(country) %>%
                 summarize(cases=sum(cases), 
                           deaths=sum(deaths),
                           population=sum(population, na.rm=T),
