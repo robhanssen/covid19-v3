@@ -216,3 +216,15 @@ casesdeathsbylocation %>% #filter( location == region) %>%
                         geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") 
 
 ggsave("graphs/covid19-SCGSP-cases-and-deaths.pdf")
+
+casesdeathsbylocation %>% filter(date > as.Date("2021-01-21")) %>% 
+                        ggplot + aes(x=date, y=casesper100k) + geom_point() + geom_smooth(method="lm", fullrange=TRUE) + 
+                        scale_y_continuous(limit=c(-50,100), breaks=seq(0,100,10)) + 
+                        scale_x_date(breaks="2 weeks", date_labels="%b %d", limit=as.Date(c("2021-01-21","2021-04-21"))) +
+                        labs(x="Date", y="Cases per 100k population", title="Cases in GSP Area (South Carolina)", subtitle="Cases per 100,000") +
+                        geom_hline(yintercept=10, lty=2) +
+                        geom_hline(yintercept=5, lty=3) +
+                        geom_hline(yintercept=0, lty=1) +
+                        geom_vline(xintercept=as.Date("2021-03-13"),lty=2) + geom_vline(xintercept=as.Date("2021-04-07"),lty=2) 
+                        
+ggsave("graphs/covid19-SCGSP-casesextrapolation.pdf")
