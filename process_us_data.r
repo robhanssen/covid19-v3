@@ -164,6 +164,21 @@ us_casesdeaths %>% filter(state=="South Carolina") %>%
                                   deathsper100k = deaths / population * 1e5
                                   ) %>% ungroup() -> casesdeathsbylocation
 
+# 
+# input from Stackoverflow https://stackoverflow.com/questions/66583434/r-modeling-how-can-i-determine-when-the-confidence-interval-of-a-model-hits-cer?noredirect=1#comment117704833_66583434
+# plot(stl(ts(casesdeathsbylocation$casesper100k, frequency = 7), s.window = "periodic"))
+# x= stl(ts(casesdeathsbylocation$casesper100k, frequency = 7), s.window = "periodic")
+# as.tibble(x$trend)
+# summary(x)
+# y= x$time.series
+# yy = tibble(date=casesdeathsbylocation$date, trend=y[,"trend"])
+
+# yy %>% filter(date>as.Date("2021-01-21")) %>% 
+#         ggplot + aes(date,trend) + geom_point() + 
+#                 geom_smooth(fullrange=TRUE, method="lm") + 
+#                 scale_x_date(limits=as.Date(c("2021-01-21","2021-05-01"))) +
+#                 scale_y_continuous(limit=c(-5,100))
+
 
 casesdeathsbylocation %>% filter(date > today() - months(6)) %>%
                 ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
