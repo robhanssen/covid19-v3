@@ -41,8 +41,8 @@ regionlist = locations %>% distinct(location)
 
 for(region in regionlist$location) 
 {
-        casesdeathsbylocation %>% filter( location == region) %>%
-                ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
+        x<-casesdeathsbylocation %>% filter( location == region)
+                ggplot(data=x) + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                         geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
                         scale_y_continuous(sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
                         scale_x_date(date_breaks="3 months", date_labels = "%b %d") + 
