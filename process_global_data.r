@@ -117,6 +117,7 @@ ggsave(paste0("graphs/covid19-casesbycountry_ranking.pdf"), width=8, height=11)
 ratesbycountry7days$country[ratesbycountry7days$country=="US"] = "USA"
 ratesbycountry7days$country[ratesbycountry7days$country=="Czechia"] = "Czech Republic"
 ratesbycountry7days$country[ratesbycountry7days$country=="Congo (Kinshasa)"] = "Democratic Republic of the Congo"
+ratesbycountry7days$country[ratesbycountry7days$country=="United Kingdom"] = "UK"
 
 
 worldmapdata <- as_tibble(map_data("world")) %>% 
