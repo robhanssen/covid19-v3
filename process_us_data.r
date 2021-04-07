@@ -243,3 +243,36 @@ casesdeathsbylocation %>% filter(date > as.Date("2021-01-21")) %>%
                         geom_vline(xintercept=as.Date("2021-03-13"),lty=2) + geom_vline(xintercept=as.Date("2021-04-07"),lty=2) 
                         
 ggsave("graphs/covid19-SCGSP-casesextrapolation.pdf")
+
+
+
+# 
+# 
+# data per for a selected state
+# 
+# 
+
+selected_state = "Florida"
+
+us_casesdeaths %>% filter(state==selected_state) %>%
+                        filter(date > today() - months(6)) %>%
+                        group_by(date) %>%
+                        summarize(population = sum(population),
+                                  cases = sum(cases),
+                                  deaths = sum(deaths),
+                                  casesper100k = cases / population * 1e5,
+                                  deathsper100k = deaths / population * 1e5
+                                  ) %>% ungroup() -> casesdeathsbylocation
+
+
+casesdeathsbylocation %>% #filter( location == region) %>%
+                ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
+                        geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
+                        scale_y_continuous(breaks=c(0,2,5,10,20, 50,100), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
+                        scale_x_date(date_breaks="1 months", date_labels = "%b %d") + 
+                        labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
+                        ggtitle(paste(selected_state, "daily cases and deaths with", avdays,"days average line")) + 
+                        geom_line(aes(date, correction*deathsper100k), color="red", linetype="dotted")  + 
+                        geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") 
+
+ggsave(paste0("graphs/covid19-",selected_state,"-cases-and-deaths.pdf"))
