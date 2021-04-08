@@ -64,8 +64,9 @@ casesdeaths %>% filter(date > datecutoff, population > 5e6) %>% group_by(country
                           population=sum(population, na.rm=T),
                           casesper100k = mean(cases, na.rm=TRUE)/population * 1e5,
                           deathsper100k = mean(deaths, na.rm=TRUE)/population * 1e5
-                          ) %>% top_n(30, casesper100k) %>%
-                ggplot + aes(x=fct_reorder(country,casesper100k), y=casesper100k) + 
+                          ) %>% top_n(30, casesper100k) -> casesdeath_top30
+
+casesdeath_top30 %>% ggplot + aes(x=fct_reorder(country,casesper100k), y=casesper100k) + 
                         geom_bar(stat="identity") + 
                         labs(x="Country with population > 5 million", y="Average cases per day per 100k") +
                         coord_flip()
@@ -112,6 +113,12 @@ ratesbycountry7days %>% filter(!is.na(level), population > 5e6) %>% top_n(30,cas
                                coord_flip() + 
                                scale_fill_manual(values=colorset)
 
+top20countrylist <- ratesbycountry7days %>% 
+                        filter(!is.na(level), population > 5e6) %>% 
+                        arrange(-casesper100k) %>% 
+                        mutate(rank = row_number()) %>%
+                        top_n(20,casesper100k) 
+
 ggsave(paste0("graphs/covid19-casesbycountry_ranking.pdf"), width=8, height=11)
 
 ratesbycountry7days$country[ratesbycountry7days$country=="US"] = "USA"
@@ -133,3 +140,65 @@ ggplot(data = worldmapdata) +
   coord_fixed(1.3) 
 
 ggsave(paste0("graphs/covid19-worldmap.pdf"), width=11, height=8)
+
+
+countrylist = top20countrylist$country
+
+for (selected_country in countrylist)
+{
+        casesdeaths %>% filter(country==selected_country) %>%
+                                group_by(date) %>%
+                                summarize(population = sum(population),
+                                          cases = sum(cases),
+                                          deaths = sum(deaths),
+                                          casesper100k = cases / population * 1e5,
+                                          deathsper100k = deaths / population * 1e5
+                                          ) %>% ungroup() -> casesdeathsbylocation
+
+
+        casesdeathsbylocation %>% filter(date > today() - months(12)) %>%
+                        ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
+                                geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
+                                scale_y_continuous(limit=c(0,150), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
+                                scale_x_date(date_breaks="3 months", date_labels = "%b %d") + 
+                                labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
+                                ggtitle(paste(selected_country, "daily cases and deaths with", avdays,"days average line")) + 
+                                geom_line(aes(date, correction*deathsper100k), color="red", linetype="dotted")  + 
+                                geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") 
+
+        rank = top20countrylist$rank[top20countrylist$country==selected_country]
+        fname = paste0("countrygraphs/", rank,"-", selected_country,"-cases-and-deaths.pdf")
+        ggsave(fname, width=11, height=8)
+
+}
+
+
+continentlist = sort(unique(na.omit(casesdeaths$continent)))
+
+for (selected_continent in continentlist)
+{
+        casesdeaths %>% filter(continent==selected_continent) %>%
+                                group_by(date) %>%
+                                summarize(population = sum(population),
+                                          cases = sum(cases),
+                                          deaths = sum(deaths),
+                                          casesper100k = cases / population * 1e5,
+                                          deathsper100k = deaths / population * 1e5
+                                          ) %>% ungroup() -> casesdeathsbylocation
+
+
+        casesdeathsbylocation %>% filter(date > today() - months(12)) %>%
+                        ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
+                                geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
+                                scale_y_continuous(limit=c(0,100), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
+                                scale_x_date(date_breaks="3 months", date_labels = "%b %d") + 
+                                labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
+                                ggtitle(paste(selected_continent, "daily cases and deaths with", avdays,"days average line")) + 
+                                geom_line(aes(date, correction*deathsper100k), color="red", linetype="dotted")  + 
+                                geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") 
+
+        fname = paste0("continentgraphs/covid19-", selected_continent,"cases-and-deaths.pdf")
+        ggsave(fname, width=11, height=8)
+
+}
+
