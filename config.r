@@ -23,7 +23,7 @@ dailydifference <- function(df, infocols)
 
 tidydata <- function(df, dataname, exclusionvector)
 {
-   tidydf <- df %>% pivot_longer(!exclusionvector, 
+   tidydf <- df %>% pivot_longer(!all_of(exclusionvector), 
                                     names_to = "date",
                                     values_to = dataname)
     
