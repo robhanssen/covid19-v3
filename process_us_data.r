@@ -137,6 +137,7 @@ ratesbystate7days %>% ggplot + aes(x=fct_reorder(state,casesper100k), y=casesper
 
 ggsave(paste0("graphs/covid19-casesbystate_ranking.pdf"))
 
+top_state = ratesbystate7days %>% top_n(1) %>% select(state)
 
 statemapdata <- as_tibble(map_data("state")) %>% 
                         rename(state=region) %>%
@@ -252,7 +253,7 @@ ggsave("graphs/covid19-SCGSP-cases-and-deaths.pdf")
 # 
 # 
 
-selected_state = "Florida"
+selected_state = top_state$state
 
 us_casesdeaths %>% filter(state==selected_state) %>%
                         filter(date > today() - months(6)) %>%
@@ -275,4 +276,4 @@ casesdeathsbylocation %>% #filter( location == region) %>%
                         geom_line(aes(date, correction*deathsper100k), color="red", linetype="dotted")  + 
                         geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") 
 
-ggsave(paste0("graphs/covid19-",selected_state,"-cases-and-deaths.pdf"))
+ggsave(paste0("graphs/covid19-topstate-cases-and-deaths.pdf"))
