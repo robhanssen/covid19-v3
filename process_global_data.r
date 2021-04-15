@@ -167,7 +167,7 @@ for (selected_country in countrylist)
                                 geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") 
 
         rank = top20countrylist$rank[top20countrylist$country==selected_country]
-        fname = paste0("countrygraphs/", rank,"-", selected_country,"-cases-and-deaths.pdf")
+        fname = paste0("countrygraphs/", rank,"-cases-and-deaths.pdf")
         ggsave(fname, width=11, height=8)
 
 }
