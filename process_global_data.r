@@ -202,3 +202,32 @@ for (selected_continent in continentlist)
 
 }
 
+
+# 
+# 
+# 
+# 
+selected_country = "India"
+
+        casesdeaths %>% filter(country==selected_country) %>%
+                                group_by(date) %>%
+                                summarize(population = sum(population),
+                                          cases = sum(cases),
+                                          deaths = sum(deaths),
+                                          casesper100k = cases / population * 1e5,
+                                          deathsper100k = deaths / population * 1e5
+                                          ) %>% ungroup() -> casesdeathsbylocation
+
+
+        casesdeathsbylocation %>% filter(date > today() - months(12)) %>%
+                        ggplot + aes(date, cases) + geom_line(color="blue", linetype="dotted") + 
+                                geom_line(aes(y=rollmean(cases,avdays, na.pad=TRUE)), size=2, color="blue") + 
+                                scale_y_continuous(breaks=1e5*1:20, sec.axis = sec_axis(~ ./correction, breaks=1e3*seq(0,5,1))) + 
+                                scale_x_date(date_breaks="3 months", date_labels = "%b %d") + 
+                                labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
+                                ggtitle(paste(selected_country, "daily cases and deaths with", avdays,"days average line")) + 
+                                geom_line(aes(date, correction*deaths), color="red", linetype="dotted")  + 
+                                geom_line(aes(y=rollmean(correction*deaths,avdays,na.pad=TRUE)), size=2, color="red") 
+
+
+ggsave(paste0("graphs/covid19-casesbycountry_India.pdf"), width=8, height=11)
