@@ -237,3 +237,14 @@ selected_country = "India"
 
 
 ggsave(paste0("graphs/covid19-casesbycountry_India.pdf"), width=8, height=11)
+
+#
+#
+#
+#
+        casesdeaths %>% filter(population > 5e6)   %>%
+                        mutate(casesper100k = cases / population * 1e5,
+                                 deathsper100k = deaths / population * 1e5) %>% group_by(country) %>%
+                          mutate(avcases = rollmean(casesper100k, 14, na.pad=TRUE)) %>% 
+                          ungroup() %>% 
+                          arrange(-avcases) %>% View()
