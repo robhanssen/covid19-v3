@@ -194,10 +194,10 @@ casesdeathsbylocation %>% filter(date > today() - months(6)) %>%
 write_csv(casesdeathsbylocation, "data/sc-casesdeath.csv")
 ggsave("graphs/covid19-SC-cases-and-deaths.pdf")
         
-casesdeathsbylocation %>% filter(date > as.Date("2021-01-21")) %>% 
+casesdeathsbylocation %>% filter(date > as.Date("2021-03-01")) %>% 
                         ggplot + aes(x=date, y=casesper100k) + geom_point() + geom_smooth(method="lm", fullrange=TRUE) + 
                         scale_y_continuous(limit=c(-50,100), breaks=seq(0,100,10)) + 
-                        scale_x_date(breaks="2 weeks", date_labels="%b %d", limit=as.Date(c("2021-01-21","2021-05-07"))) +
+                        scale_x_date(breaks="2 weeks", date_labels="%b %d", limit=as.Date(c("2021-01-21","2021-07-07"))) +
                         labs(x="Date", y="Cases per 100k population", title="Cases in South Carolina", subtitle="Cases per 100,000") +
                         geom_hline(yintercept=10, lty=2) +
                         geom_hline(yintercept=5, lty=3) +
