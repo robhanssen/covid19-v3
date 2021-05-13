@@ -16,22 +16,40 @@ us_casesdeaths %>% filter(state=="South Carolina", date>as.Date("2021-03-01")) %
                                   deathsper100k = deaths / population * 1e5
                                   ) %>% ungroup() -> cdbl
      
-lims <- (cdbl
+# lims <- (cdbl 
+#     ## fit linear model
+#     %>% lm(formula=casesper100k~date)
+#     ## predict/add confidence intervals
+#     %>% augment(interval="confidence",
+#                 newdata=data.frame(date=
+#                  seq.Date(from=min(cdbl$date),to=max(cdbl$date)+120,
+#                               by="1 day"))) 
+#     %>% select(date,.lower,.upper) 
+#     ## interpolate to find date corresponding to target value (10)
+#     ## should use across() but I can't get it working
+#     %>% summarise(lwr=find_value(date,.lower),
+#                   upr=find_value(date,.upper))
+#     ## convert to useful data frame for ggplot
+#     %>% pivot_longer(cols=everything(),names_to="limit",values_to="date")
+# )
+
+lims <- cdbl %>%
     ## fit linear model
-    %>% lm(formula=casesper100k~date)
+    lm(formula=casesper100k~date) %>%
     ## predict/add confidence intervals
-    %>% augment(interval="confidence",
+    augment(interval="confidence",
                 newdata=data.frame(date=
                  seq.Date(from=min(cdbl$date),to=max(cdbl$date)+120,
-                              by="1 day")))
-    %>% select(date,.lower,.upper)
+                              by="1 day"))) %>%
+    select(date,.lower,.upper) %>%
     ## interpolate to find date corresponding to target value (10)
     ## should use across() but I can't get it working
-    %>% summarise(lwr=find_value(date,.lower),
-                  upr=find_value(date,.upper))
+    summarise(lwr=find_value(date,.lower),
+                  upr=find_value(date,.upper)) %>%
     ## convert to useful data frame for ggplot
-    %>% pivot_longer(cols=everything(),names_to="limit",values_to="date")
-)
+    pivot_longer(cols=everything(),names_to="limit",values_to="date")
+
+
 
 
 (ggplot(cdbl)
