@@ -14,6 +14,7 @@ if (lastreadglobal != today())
 {
         print("READING NEW DATA FOR GLOBAL")
         source("import-global-data.r")
+        source("extrapolation.r")
 }
 source("process_global_data.r")
 
