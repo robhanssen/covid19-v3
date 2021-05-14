@@ -257,7 +257,7 @@ cumulativecasesanddeaths %>%   arrange(-casesper100k) %>%
                                 ggplot() + 
                                         aes(x=fct_reorder(country, casespercent), y=casespercent) + 
                                         geom_bar(stat="identity") + 
-                                        labs(x="Country", y="Population Infection Rate (%)") + 
+                                        labs(x="Country", y="Population Infection Rate (%)", caption="dotted line indicates world average") + 
                                         geom_hline(yintercept=globalcasespercent, lty=2, color="white") +                                        
                                         coord_flip() + theme_light()
 ggsave("graphs/cumulative-infection-rate.pdf", width=8, height=11)
@@ -270,7 +270,7 @@ cumulativecasesanddeaths %>%   arrange(-deathsper100k) %>%
                                 ggplot() + 
                                         aes(x=fct_reorder(country, deathsper100k), y=deathsper100k) + 
                                         geom_bar(stat="identity") + 
-                                        labs(x="Country", y="Deaths per 100,000 population") + 
+                                        labs(x="Country", y="Deaths per 100,000 population", caption="dotted line indicates world average") + 
                                         geom_hline(yintercept=globaldeathsper100k, lty=2, color="white") +                                                                                
                                         coord_flip()  + theme_light()
 ggsave("graphs/cumulative-death-rate.pdf", width=8, height=11)
