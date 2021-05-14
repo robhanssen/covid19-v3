@@ -239,12 +239,49 @@ selected_country = "India"
 ggsave(paste0("graphs/covid19-casesbycountry_India.pdf"), width=8, height=11)
 
 #
+# Global cumulative count of cases and deaths by country
 #
 #
-#
-        casesdeaths %>% filter(population > 5e6)   %>%
-                        mutate(casesper100k = cases / population * 1e5,
-                                 deathsper100k = deaths / population * 1e5) %>% group_by(country) %>%
-                          mutate(avcases = rollmean(casesper100k, 14, na.pad=TRUE)) %>% 
-                          ungroup() %>% 
-                          arrange(-avcases) %>% View()
+casesdeaths %>% filter(population > 5e6)   %>%
+                        group_by(country, population) %>%
+                        summarize(cases = sum(cases),
+                                  deaths = sum(deaths)) %>%
+                        mutate(casesper100k = cases/population * 1e5,
+                                deathsper100k = deaths/population * 1e5, 
+                                deathrate = deaths/cases*100) -> cumulativecasesanddeaths
+
+globalcasespercent = with(cumulativecasesanddeaths, sum(cases, na.rm=TRUE)/sum(population, na.rm=TRUE)*1e2)
+cumulativecasesanddeaths %>%   arrange(-casesper100k) %>%
+                                head(20) %>%
+                                mutate(casespercent = casesper100k/1000) %>%
+                                ggplot() + 
+                                        aes(x=fct_reorder(country, casespercent), y=casespercent) + 
+                                        geom_bar(stat="identity") + 
+                                        labs(x="Country", y="Population Infection Rate (%)") + 
+                                        geom_hline(yintercept=globalcasespercent, lty=2, color="white") +                                        
+                                        coord_flip() + theme_light()
+ggsave("graphs/cumulative-infection-rate.pdf", width=8, height=11)
+
+
+globaldeathsper100k = with(cumulativecasesanddeaths, sum(deaths, na.rm=TRUE)/sum(population, na.rm=TRUE)*1e5)
+cumulativecasesanddeaths %>%   arrange(-deathsper100k) %>%
+                                head(20) %>%
+                                mutate(deathspercent = deathsper100k/1000) %>%                                
+                                ggplot() + 
+                                        aes(x=fct_reorder(country, deathsper100k), y=deathsper100k) + 
+                                        geom_bar(stat="identity") + 
+                                        labs(x="Country", y="Deaths per 100,000 population") + 
+                                        geom_hline(yintercept=globaldeathsper100k, lty=2, color="white") +                                                                                
+                                        coord_flip()  + theme_light()
+ggsave("graphs/cumulative-death-rate.pdf", width=8, height=11)
+
+globaldeathrate = with(cumulativecasesanddeaths, sum(deaths, na.rm=TRUE)/sum(cases, na.rm=TRUE)*100)
+cumulativecasesanddeaths %>%   arrange(-deathrate) %>%
+                                head(20) %>%
+                                ggplot() + 
+                                        aes(x=fct_reorder(country, deathrate), y=deathrate) + 
+                                        geom_bar(stat="identity") + 
+                                        labs(x="Country", y="Death rate (% of infected)", caption="dotted line indicates world average") + 
+                                        geom_hline(yintercept=globaldeathrate, lty=2, color="white") +
+                                        coord_flip()  + theme_light()
+ggsave("graphs/cumulative-mortality-rate.pdf", width=8, height=11)                                        

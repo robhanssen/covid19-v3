@@ -1,3 +1,5 @@
+library(broom)
+
 find_value <- function(x,y,target=10) {
     aa <- approx(y,x,xout=target)$y
     as.Date(aa,origin="1970-01-01")  ## convert back to a date (ugh)
