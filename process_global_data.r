@@ -242,6 +242,13 @@ ggsave(paste0("graphs/covid19-casesbycountry_India.pdf"), width=8, height=11)
 # Global cumulative count of cases and deaths by country
 #
 #
+totaldeathrate = read_csv("sources/deathrate.csv") %>%
+                        select(-starts_with("Indicator"), -"Country Code") %>% 
+                        rename(country = "Country Name") %>%
+                        pivot_longer(!country, names_to="year", values_to="totaldeathrate") %>%
+                        filter(!is.na(totaldeathrate)) %>% 
+                        filter(year==2018)
+
 casesdeaths %>% filter(population > 5e6)   %>%
                         group_by(country, population) %>%
                         summarize(cases = sum(cases),
@@ -285,3 +292,16 @@ cumulativecasesanddeaths %>%   arrange(-deathrate) %>%
                                         geom_hline(yintercept=globaldeathrate, lty=2, color="white") +
                                         coord_flip()  + theme_light()
 ggsave("graphs/cumulative-mortality-rate.pdf", width=8, height=11)                                        
+
+
+cumulativecasesanddeaths %>%   inner_join(totaldeathrate, by="country") %>%  
+                                mutate(covidfraction = deathrate/totaldeathrate) %>%
+                                arrange(-covidfraction) %>%
+                                head(70) %>%
+                                ggplot() + 
+                                        aes(x=fct_reorder(country, covidfraction), y=covidfraction) + 
+                                        geom_bar(stat="identity") + 
+                                        labs(x="Country", y="COVID Death rate (compared to 2018 death rate)", caption="") + 
+                                        # geom_hline(yintercept=globaldeathrate, lty=2, color="white") +
+                                        coord_flip()  + theme_light()
+
