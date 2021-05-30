@@ -161,11 +161,14 @@ for (selected_country in countrylist)
                                           deathsper100k = deaths / population * 1e5
                                           ) %>% ungroup() -> casesdeathsbylocation
 
+        ylimit_max = (max(casesdeathsbylocation$casesper100k) %/% 10 + 1) * 10
+
+        ylimit_max = ifelse(ylimit_max > 150, ylimit_max, 150)
 
         casesdeathsbylocation %>% filter(date > today() - months(12)) %>%
                         ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                                 geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
-                                scale_y_continuous(limit=c(0,150), breaks=c(0,2,5,10,20,50,100,150), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
+                                scale_y_continuous(limit=c(0,ylimit_max), breaks=c(0,2,5,10,20,50,100,150,200,300), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
                                 scale_x_date(date_breaks="3 months", date_labels = "%b %d") + 
                                 labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
                                 ggtitle(paste(selected_country, "daily cases and deaths with", avdays,"days average line")) + 

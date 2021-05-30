@@ -1,6 +1,6 @@
 library(broom)
 
-find_value <- function(x,y,target=10) {
+find_value <- function(x,y,target=c(2,5,10)) {
     aa <- approx(y,x,xout=target)$y
     as.Date(aa,origin="1970-01-01")  ## convert back to a date (ugh)
 }
@@ -49,7 +49,7 @@ lims <- cdbl %>%
     summarise(lwr=find_value(date,.lower),
                   upr=find_value(date,.upper)) %>%
     ## convert to useful data frame for ggplot
-    pivot_longer(cols=everything(),names_to="limit",values_to="date")
+    pivot_longer(cols=everything(),names_to="limit",values_to="date") %>% filter(limit=="upr")
 
 
 
@@ -98,7 +98,7 @@ lims <- (cdbl
     %>% summarise(lwr=find_value(date,.lower),
                   upr=find_value(date,.upper))
     ## convert to useful data frame for ggplot
-    %>% pivot_longer(cols=everything(),names_to="limit",values_to="date")
+    %>% pivot_longer(cols=everything(),names_to="limit",values_to="date") %>% filter(limit=="upr")
 )
 
 
