@@ -181,7 +181,7 @@ us_casesdeaths %>% filter(state=="South Carolina") %>%
 #                 scale_y_continuous(limit=c(-5,100))
 
 
-casesdeathsbylocation %>% filter(date > today() - months(6)) %>%
+casesdeathsbylocation %>% filter(date > today() - as.difftime(months(6))) %>%
                 ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                         geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
                         scale_y_continuous(limit=c(0,150), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
@@ -211,7 +211,7 @@ ggsave("graphs/covid19-SC-cases-and-deaths.pdf")
 # 
 us_casesdeaths %>% filter(state=="South Carolina") %>%
                         filter(county=="Spartanburg" | county=="Greenville") %>%
-                        filter(date > today() - months(6)) %>%
+                        filter(date > today() - as.difftime(months(6))) %>%
                         group_by(date) %>%
                         summarize(population = sum(population),
                                   cases = sum(cases),
@@ -254,9 +254,10 @@ ggsave("graphs/covid19-SCGSP-cases-and-deaths.pdf")
 # 
 
 selected_state = top_state$state
+sixmonthsago = today() - as.difftime(months(6))
 
 us_casesdeaths %>% filter(state==selected_state) %>%
-                        filter(date > today() - months(6)) %>%
+                        filter(date > sixmonthsago) %>%
                         group_by(date) %>%
                         summarize(population = sum(population),
                                   cases = sum(cases),
