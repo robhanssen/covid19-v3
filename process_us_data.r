@@ -191,7 +191,7 @@ casesdeathsbylocation %>% filter(date > today() - as.difftime(months(6))) %>%
                         geom_line(aes(date, correction*deathsper100k), color="red", linetype="dotted")  + 
                         geom_line(aes(y=rollmean(correction*deathsper100k,avdays,na.pad=TRUE)), size=2, color="red") 
 
-write_csv(casesdeathsbylocation, "data/sc-casesdeath.csv")
+# write_csv(casesdeathsbylocation, "data/sc-casesdeath.csv")
 ggsave("graphs/covid19-SC-cases-and-deaths.pdf")
         
 # casesdeathsbylocation %>% filter(date > as.Date("2021-03-01")) %>% 
