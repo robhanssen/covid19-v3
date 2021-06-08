@@ -17,9 +17,9 @@ totalcasecomment=""
 capt="insert caption here"
 
 
-selected_country = "US"
+selected_country = "Peru"
 
-        casesdeaths %>% filter(country==selected_country) %>% filter(date>as.Date("2021-03-01")) %>%
+        casesdeaths %>% filter(country==selected_country) %>% filter(date>as.Date("2020-03-01")) %>%
                                 group_by(date) %>%
                                 summarize(population = sum(population),
                                           cases = sum(cases),
@@ -32,7 +32,7 @@ selected_country = "US"
 
         ylimit_max = ifelse(ylimit_max > 150, ylimit_max, 150)
 
-        casesdeathsbylocation %>% filter(date > today() - months(12)) %>%
+        casesdeathsbylocation %>% filter(date > today() - months(18)) %>%
                         ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                                 geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
                                 scale_y_continuous(limit=c(0,ylimit_max), breaks=c(0,2,5,10,20,50,100,150,200,300), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
