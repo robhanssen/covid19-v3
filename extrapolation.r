@@ -59,7 +59,7 @@ lims <- cdbl %>%
     + geom_point()
     + expand_limits(x=max(cdbl$date+60))
     + geom_smooth(method="lm", fullrange=TRUE)
-    + scale_y_continuous(limit=c(-50,100), breaks=seq(0,100,10))
+    + scale_y_continuous(limit=c(-10,40), breaks=seq(0,100,10))
     + scale_x_date(breaks="2 weeks", date_labels="%b %d")
     + geom_hline(yintercept=10,lty=2)
     + geom_vline(data=lims,aes(xintercept=date),lty=2)
@@ -82,9 +82,9 @@ us_casesdeaths %>% filter(state=="South Carolina", county=="Greenville" | county
                                   deaths = sum(deaths),
                                   casesper100k = cases / population * 1e5,
                                   deathsper100k = deaths / population * 1e5
-                                  ) %>% ungroup() -> cdbl
+                                  ) %>% ungroup() -> cdbl_gsp
      
-lims <- (cdbl
+lims_gsp <- (cdbl_gsp
     ## fit linear model
     %>% lm(formula=casesper100k~date)
     ## predict/add confidence intervals
@@ -102,15 +102,15 @@ lims <- (cdbl
 )
 
 
-(ggplot(cdbl)
+(ggplot(cdbl_gsp)
     + aes(x=date, y=casesper100k)
     + geom_point()
-    + expand_limits(x=max(cdbl$date+60))
+    + expand_limits(x=max(cdbl$date+20))
     + geom_smooth(method="lm", fullrange=TRUE)
-    + scale_y_continuous(limit=c(-50,100), breaks=seq(0,100,10))
+    + scale_y_continuous(limit=c(-15,40), breaks=seq(0,100,10))
     + scale_x_date(breaks="2 weeks", date_labels="%b %d")
     + geom_hline(yintercept=10,lty=2)
-    + geom_vline(data=lims,aes(xintercept=date),lty=2)  
+    + geom_vline(data=lims_gsp,aes(xintercept=date),lty=2)  
     + geom_vline(xintercept=today(),lty=2, color="red")  
     + labs(x="Date", y="Cases per 100k population", title="Cases in GSP Area (South Carolina)", subtitle="Cases per 100,000")
 )
