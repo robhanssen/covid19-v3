@@ -148,6 +148,16 @@ ggplot(data = worldmapdata) +
 ggsave(paste0("graphs/covid19-worldmap.pdf"), width=11, height=8)
 
 
+# map of Europe
+ggplot(data = worldmapdata) + 
+  geom_polygon(aes(x = long, y = lat, fill = level, group = group), color = "white") + scale_fill_manual(values=colorset) + 
+  scale_x_continuous(limits=c(-10,50)) + scale_y_continuous(limits=c(35,75)) +
+  ggtitle("Week-average daily infection rate across Europe (in new infections/day)") + 
+  labs(fill="Infection level", caption=caption) +
+  coord_fixed(1.3) 
+
+ggsave(paste0("graphs/covid19-europe_map.pdf"), width=11, height=8)
+
 countrylist = top20countrylist$country
 
 for (selected_country in countrylist)
