@@ -61,13 +61,14 @@ us_casesdeaths %>%  group_by(date) %>%
                     mutate(president=ifelse(date< inauguration, "Trump", "Biden"), 
                             president=factor(president, levels=c("Trump","Biden"))) %>%
                     ggplot + aes(x=date, y=cdeaths, color=president) + #geom_point() +
+                    scale_x_date(breaks="3 months") + 
                     scale_color_manual(values= c("Trump" = "red", "Biden"="blue"))  + 
                     theme_light() + 
                     labs(x="Date", 
-                        y="Cumulative cases per day", 
+                        y="Cumulative deaths", 
                         color="President", 
                         caption="Vertical lines indicate Election Day 2020 (red) and Inauguration Day 2021 (blue)",
-                        title=paste0(avdays,"-day rolling average cumulative cases per day in the United States")) + 
+                        title=paste0(avdays,"-day rolling average cumulative deaths in the United States")) + 
                     geom_vline(xintercept=inauguration, lty=2, color="blue") +
                     geom_vline(xintercept=election, lty=2, color="red") +
                     geom_line(aes(y=rollmean(cdeaths,avdays,na.pad=TRUE)))            
