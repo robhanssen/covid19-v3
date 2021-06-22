@@ -17,7 +17,7 @@ totalcasecomment=""
 capt="insert caption here"
 
 
-selected_country = "Netherlands"
+selected_country = "United Kingdom"
 
         casesdeaths %>% filter(country==selected_country) %>% filter(date>as.Date("2020-03-01")) %>%
                                 group_by(date) %>%
