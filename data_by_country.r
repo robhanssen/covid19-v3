@@ -16,8 +16,12 @@ avdays=7
 totalcasecomment=""
 capt="insert caption here"
 
-
+# pick one
+selected_country = "Netherlands"
 selected_country = "United Kingdom"
+selected_country = "Sweden"
+selected_country = "Namibia"
+
 
         casesdeaths %>% filter(country==selected_country) %>% filter(date>as.Date("2020-03-01")) %>%
                                 group_by(date) %>%
