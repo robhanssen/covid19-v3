@@ -70,7 +70,10 @@ casesdeaths %>% filter(date > datecutoff, population > 5e6) %>% group_by(country
                           population=sum(population, na.rm=T),
                           casesper100k = mean(cases, na.rm=TRUE)/population * 1e5,
                           deathsper100k = mean(deaths, na.rm=TRUE)/population * 1e5
-                          ) %>% top_n(30, casesper100k) -> casesdeath_top30
+                          ) %>% top_n(30, casesper100k) %>%
+                          arrange(-casesper100k) %>% 
+                          bind_cols(.,rank=1:30) %>%
+                          mutate(country = paste(rank, country))  -> casesdeath_top30
 
 casesdeath_top30 %>% ggplot + aes(x=fct_reorder(country,casesper100k), y=casesper100k) + 
                         geom_bar(stat="identity") + 
@@ -112,6 +115,7 @@ casesdeaths %>% filter(date > datecutoff) %>% group_by(country) %>%
                                 ) -> ratesbycountry7days
 
 ratesbycountry7days %>% filter(!is.na(level), population > 5e6) %>% top_n(30,casesper100k) %>%
+                        arrange(-casesper100k) %>% bind_cols(rank=1:30) %>% mutate(country=paste0(country," (",rank,")")) %>%
                         ggplot + aes(x=fct_reorder(country,casesper100k), y=casesper100k, fill=level) + 
                                scale_y_continuous(breaks=c(2,5,10,20,50,100)) +
                                geom_bar(stat="identity") + 
