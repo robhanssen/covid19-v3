@@ -46,8 +46,8 @@ casesdeathsbylocation %>% filter(date > today() - as.difftime(months(3))) %>%
 
 
 
-selected_state = "South Carolina"
-us_casesdeaths %>% filter(state==selected_state, county=="Greenville") %>%
+selected_state = "Florida"
+us_casesdeaths %>% filter(state==selected_state, county=="Alachua") %>%
                         group_by(date) %>%
                         summarize(population = sum(population),
                                   cases = sum(cases),
