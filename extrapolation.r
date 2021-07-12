@@ -1,4 +1,11 @@
 library(broom)
+library(sweep)
+library(forecast)
+library(timetk)
+
+
+theme_set(theme_light())
+
 
 find_value <- function(x,y,target=c(0, 2,5,10)) {
     aa <- approx(y,x,xout=target)$y
@@ -9,7 +16,7 @@ find_value <- function(x,y,target=c(0, 2,5,10)) {
 #  extrapolocation for SC data
 # 
 
-us_casesdeaths %>% filter(state=="South Carolina", date>as.Date("2021-06-15")) %>%
+us_casesdeaths %>% filter(state=="South Carolina", date>as.Date("2021-03-15")) %>%
                         group_by(date) %>%
                         summarize(population = sum(population),
                                   cases = sum(cases),
@@ -18,22 +25,29 @@ us_casesdeaths %>% filter(state=="South Carolina", date>as.Date("2021-06-15")) %
                                   deathsper100k = deaths / population * 1e5
                                   ) %>% ungroup() -> cdbl
      
-# lims <- (cdbl 
-#     ## fit linear model
-#     %>% lm(formula=casesper100k~date)
-#     ## predict/add confidence intervals
-#     %>% augment(interval="confidence",
-#                 newdata=data.frame(date=
-#                  seq.Date(from=min(cdbl$date),to=max(cdbl$date)+120,
-#                               by="1 day"))) 
-#     %>% select(date,.lower,.upper) 
-#     ## interpolate to find date corresponding to target value (10)
-#     ## should use across() but I can't get it working
-#     %>% summarise(lwr=find_value(date,.lower),
-#                   upr=find_value(date,.upper))
-#     ## convert to useful data frame for ggplot
-#     %>% pivot_longer(cols=everything(),names_to="limit",values_to="date")
-# )
+
+timeseries <- cdbl %>% select(date, casesper100k) %>% tk_ts()
+
+etsmodel <- timeseries %>% ets() 
+etsdata <- etsmodel %>% sw_augment() 
+
+fcast <- etsmodel %>% forecast(h=60)
+
+autoplot(timeseries) +
+        autolayer(fcast, series="Forecast", PI = FALSE) +
+  geom_point(data=etsdata, aes(x=index, y=.actual)) + 
+  theme(legend.position = "none")  +
+  expand_limits(y=0) + 
+  labs( x="Date", 
+        y="Cases", 
+        color="Account Type", 
+        title="SC cases per 100k" 
+        )
+
+
+
+ggsave("projections/covid19-SC-timeseries.pdf")
+
 
 linmod <- cdbl %>%
     ## fit linear model
@@ -70,7 +84,7 @@ lims <- linmod %>%
     + labs(x="Date", y="Cases per 100k population", title="Cases in South Carolina", subtitle="Cases per 100,000")
 )
 
-ggsave("graphs/covid19-SC-casesextrapolation.pdf")
+ggsave("projections/covid19-SC-casesextrapolation.pdf")
 
 
 
@@ -118,4 +132,26 @@ lims_gsp <- (cdbl_gsp
     + labs(x="Date", y="Cases per 100k population", title="Cases in GSP Area (South Carolina)", subtitle="Cases per 100,000")
 )
 
-ggsave("graphs/covid19-SCGSP-casesextrapolation.pdf")
+ggsave("projections/covid19-SCGSP-casesextrapolation.pdf")
+
+
+timeseries <- cdbl_gsp %>% select(date, casesper100k) %>% tk_ts()
+
+etsmodel <- timeseries %>% ets() 
+etsdata <- etsmodel %>% sw_augment() 
+
+fcast <- etsmodel %>% forecast(h=60)
+
+autoplot(timeseries) +
+        autolayer(fcast, series="Forecast", PI = FALSE) +
+  geom_point(data=etsdata, aes(x=index, y=.actual)) + 
+  theme(legend.position = "none")  +
+  expand_limits(y=0) + 
+  labs( x="Date", 
+        y="Cases", 
+        color="Account Type", 
+        title="SC/GSP cases per 100k" 
+        )
+
+
+ggsave("projections/covid19-SCGSP-timeseries.pdf")
