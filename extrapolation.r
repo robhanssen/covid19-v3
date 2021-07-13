@@ -2,7 +2,8 @@ library(broom)
 library(sweep)
 library(forecast)
 library(timetk)
-
+library(tidyverse)
+library(ggfortify)
 
 theme_set(theme_light())
 
@@ -16,7 +17,9 @@ find_value <- function(x,y,target=c(0, 2,5,10)) {
 #  extrapolocation for SC data
 # 
 
-us_casesdeaths %>% filter(state=="South Carolina", date>as.Date("2021-03-15")) %>%
+FILTERDATE = as.Date("2021-04-01")
+
+us_casesdeaths %>% filter(state=="South Carolina", date>FILTERDATE) %>%
                         group_by(date) %>%
                         summarize(population = sum(population),
                                   cases = sum(cases),
@@ -26,24 +29,49 @@ us_casesdeaths %>% filter(state=="South Carolina", date>as.Date("2021-03-15")) %
                                   ) %>% ungroup() -> cdbl
      
 
-timeseries <- cdbl %>% select(date, casesper100k) %>% tk_ts()
+timeseries <- cdbl %>% select(date, casesper100k) %>% tk_ts(start=2021, frequency=365)
 
 etsmodel <- timeseries %>% ets() 
 etsdata <- etsmodel %>% sw_augment() 
 
-fcast <- etsmodel %>% forecast(h=60)
+fcast <- etsmodel %>% forecast(h=45)
 
-autoplot(timeseries) +
-        autolayer(fcast, series="Forecast", PI = FALSE) +
-  geom_point(data=etsdata, aes(x=index, y=.actual)) + 
-  theme(legend.position = "none")  +
-  expand_limits(y=0) + 
-  labs( x="Date", 
-        y="Cases", 
-        color="Account Type", 
-        title="SC cases per 100k" 
+# autoplot(timeseries) +
+#         autolayer(fcast, series="Forecast", PI = FALSE) +
+#   geom_point(data=etsdata, aes(x=index, y=.actual)) + 
+#   theme(legend.position = "none")  +
+#   expand_limits(y=0) + 
+#   labs( x="Date", 
+#         y="Cases", 
+#         color="Account Type", 
+#         title="SC cases per 100k" 
+#         )
+# 
+# 
+
+
+fcast_tib <- as_tibble(fortify(fcast)) %>% 
+                    mutate( dy = as.integer((365 * (Index -2021))), 
+                            date = FILTERDATE + days(dy)) %>% 
+                    rename(pointforecast = "Point Forecast", 
+                            Lo80 = "Lo 80", 
+                            Hi80 = "Hi 80")
+
+ts <- timeseries %>% ets() %>% sw_augment() %>% bind_cols(date=cdbl$date)
+
+ggplot(data=cdbl) + 
+        aes(x=date, y=casesper100k) + 
+        geom_point() + 
+        geom_line(data=ts, aes(y=.fitted)) + 
+        geom_ribbon(data=fcast_tib, aes(y=pointforecast, ymin=Lo80, ymax=Hi80), fill="red", alpha=.2) +
+        geom_line(data=fcast_tib, aes(y=pointforecast), color="red")  +
+        scale_x_date(breaks="1 month", date_labels="%b %d") + 
+        expand_limits(y=0) + 
+        labs( x="Date", 
+            y="New daily cases per 100,000", 
+            color="", 
+            title="SC cases per 100k" 
         )
-
 
 
 ggsave("projections/covid19-SC-timeseries.pdf")
