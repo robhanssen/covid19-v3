@@ -36,20 +36,6 @@ etsdata <- etsmodel %>% sw_augment()
 
 fcast <- etsmodel %>% forecast(h=45)
 
-# autoplot(timeseries) +
-#         autolayer(fcast, series="Forecast", PI = FALSE) +
-#   geom_point(data=etsdata, aes(x=index, y=.actual)) + 
-#   theme(legend.position = "none")  +
-#   expand_limits(y=0) + 
-#   labs( x="Date", 
-#         y="Cases", 
-#         color="Account Type", 
-#         title="SC cases per 100k" 
-#         )
-# 
-# 
-
-
 fcast_tib <- as_tibble(fortify(fcast), ts.connect=TRUE) %>% 
                     mutate( dy = as.integer(Index), 
                             date = FILTERDATE + days(dy)) %>%  
