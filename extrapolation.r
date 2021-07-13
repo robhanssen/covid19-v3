@@ -17,7 +17,7 @@ find_value <- function(x,y,target=c(0, 2,5,10)) {
 #  extrapolocation for SC data
 # 
 
-FILTERDATE = as.Date("2021-04-01")
+FILTERDATE = as.Date("2021-03-15")
 
 us_casesdeaths %>% filter(state=="South Carolina", date>FILTERDATE) %>%
                         group_by(date) %>%
@@ -29,7 +29,7 @@ us_casesdeaths %>% filter(state=="South Carolina", date>FILTERDATE) %>%
                                   ) %>% ungroup() -> cdbl
      
 
-timeseries <- cdbl %>% select(date, casesper100k) %>% tk_ts(start=2021, frequency=365)
+timeseries <- cdbl %>% select(date, casesper100k) %>% tk_ts() #start=2021, frequency=365)
 
 etsmodel <- timeseries %>% ets() 
 etsdata <- etsmodel %>% sw_augment() 
@@ -50,22 +50,26 @@ fcast <- etsmodel %>% forecast(h=45)
 # 
 
 
-fcast_tib <- as_tibble(fortify(fcast)) %>% 
-                    mutate( dy = as.integer((365 * (Index -2021))), 
-                            date = FILTERDATE + days(dy)) %>% 
+fcast_tib <- as_tibble(fortify(fcast), ts.connect=TRUE) %>% 
+                    mutate( dy = as.integer(Index), 
+                            date = FILTERDATE + days(dy)) %>%  
                     rename(pointforecast = "Point Forecast", 
                             Lo80 = "Lo 80", 
-                            Hi80 = "Hi 80")
+                            Hi80 = "Hi 80", 
+                            Lo95 = "Lo 95",
+                            Hi95 = "Hi 95")
 
 ts <- timeseries %>% ets() %>% sw_augment() %>% bind_cols(date=cdbl$date)
 
 ggplot(data=cdbl) + 
         aes(x=date, y=casesper100k) + 
         geom_point() + 
-        geom_line(data=ts, aes(y=.fitted)) + 
-        geom_ribbon(data=fcast_tib, aes(y=pointforecast, ymin=Lo80, ymax=Hi80), fill="red", alpha=.2) +
-        geom_line(data=fcast_tib, aes(y=pointforecast), color="red")  +
-        scale_x_date(breaks="1 month", date_labels="%b %d") + 
+        geom_line(data=fcast_tib, aes(y=Fitted)) + 
+        geom_ribbon(data=fcast_tib, aes(y=pointforecast, ymin=Lo95, ymax=Hi95), fill="blue", alpha=.3, lty=2, color="black") +
+        geom_ribbon(data=fcast_tib, aes(y=pointforecast, ymin=Lo80, ymax=Hi80), fill="lightblue", alpha=.3, lty=2, color="black") +
+        geom_line(data=fcast_tib, aes(y=pointforecast), color="yellow")  +
+        scale_x_date(breaks="1 week", date_labels="%b %d", limit=c(today()-weeks(4), today()+weeks(4))) + 
+        scale_y_continuous(breaks=10*0:10) + 
         expand_limits(y=0) + 
         labs( x="Date", 
             y="New daily cases per 100,000", 
@@ -74,7 +78,7 @@ ggplot(data=cdbl) +
         )
 
 
-ggsave("projections/covid19-SC-timeseries.pdf")
+ggsave("projections/covid19-SC-timeseries.pdf", width=11, height=8)
 
 
 linmod <- cdbl %>%
@@ -120,7 +124,7 @@ ggsave("projections/covid19-SC-casesextrapolation.pdf")
 #  extrapolocation for GSP data
 # 
 
-us_casesdeaths %>% filter(state=="South Carolina", county=="Greenville" | county=="Spartanburg", date>as.Date("2021-03-15")) %>%
+us_casesdeaths %>% filter(state=="South Carolina", county=="Greenville" | county=="Spartanburg", date>FILTERDATE) %>%
                         group_by(date) %>%
                         summarize(population = sum(population),
                                   cases = sum(cases),
@@ -162,24 +166,43 @@ lims_gsp <- (cdbl_gsp
 
 ggsave("projections/covid19-SCGSP-casesextrapolation.pdf")
 
+# 
+# Timeseries modelling
+# 
 
-timeseries <- cdbl_gsp %>% select(date, casesper100k) %>% tk_ts()
+timeseries <- cdbl_gsp %>% select(date, casesper100k) %>% tk_ts() #start=2021, frequency=365)
 
 etsmodel <- timeseries %>% ets() 
 etsdata <- etsmodel %>% sw_augment() 
 
-fcast <- etsmodel %>% forecast(h=60)
+fcast <- etsmodel %>% forecast(h=45)
 
-autoplot(timeseries) +
-        autolayer(fcast, series="Forecast", PI = FALSE) +
-  geom_point(data=etsdata, aes(x=index, y=.actual)) + 
-  theme(legend.position = "none")  +
-  expand_limits(y=0) + 
-  labs( x="Date", 
-        y="Cases", 
-        color="Account Type", 
-        title="SC/GSP cases per 100k" 
+fcast_tib <- as_tibble(fortify(fcast), ts.connect=TRUE) %>% 
+                    mutate( dy = as.integer(Index), 
+                            date = FILTERDATE + days(dy)) %>%  
+                    rename(pointforecast = "Point Forecast", 
+                            Lo80 = "Lo 80", 
+                            Hi80 = "Hi 80", 
+                            Lo95 = "Lo 95",
+                            Hi95 = "Hi 95")
+
+ts <- timeseries %>% ets() %>% sw_augment() %>% bind_cols(date=cdbl$date)
+
+ggplot(data=cdbl_gsp) + 
+        aes(x=date, y=casesper100k) + 
+        geom_point() + 
+        geom_line(data=fcast_tib, aes(y=Fitted)) + 
+        geom_ribbon(data=fcast_tib, aes(y=pointforecast, ymin=Lo95, ymax=Hi95), fill="blue", alpha=.3, lty=2, color="black") +
+        geom_ribbon(data=fcast_tib, aes(y=pointforecast, ymin=Lo80, ymax=Hi80), fill="lightblue", alpha=.3, lty=2, color="black") +
+        geom_line(data=fcast_tib, aes(y=pointforecast), color="yellow")  +
+        scale_x_date(breaks="1 week", date_labels="%b %d", limit=c(today()-weeks(4), today()+weeks(4))) + 
+        scale_y_continuous(breaks=10*0:10) + 
+        expand_limits(y=0) + 
+        labs( x="Date", 
+            y="New daily cases per 100,000", 
+            color="", 
+            title="SC/GSP cases per 100k" 
         )
 
 
-ggsave("projections/covid19-SCGSP-timeseries.pdf")
+ggsave("projections/covid19-SCGSP-timeseries.pdf", width=11, height=8)
