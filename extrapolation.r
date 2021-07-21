@@ -192,3 +192,37 @@ ggplot(data=cdbl_gsp) +
 
 
 ggsave("projections/covid19-SCGSP-timeseries.pdf", width=11, height=8)
+
+#
+# 14 day trends in GSP
+#
+
+twoweeksago <- today() - weeks(2)
+twoweeksfromnow <- today() + weeks(2)
+
+next2weeks <- tibble(date = seq.Date(from = twoweeksago,
+                                    to = twoweeksfromnow,
+                                    by = "1 day"))
+
+predict_gsp <- cdbl_gsp %>%
+        filter(date >= twoweeksago) %>%
+        lm(casesper100k ~ date, data=.) %>%
+        augment(newdata = next2weeks, interval = "confidence")
+
+ggplot(data = cdbl_gsp) +
+    aes(x = date, y = casesper100k) +
+    geom_point() +
+    geom_line(data = cdbl_gsp, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "right")), color = "red") +
+    geom_line(data = cdbl_gsp, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "center")), color = "red", lty = 2) +        
+    expand_limits(x = max(cdbl_gsp$date + 20)) +
+    scale_y_continuous(limit = c(-15, 40), breaks = seq(0, 100, 10)) +
+    scale_x_date(breaks = "2 weeks", date_labels = "%b %d") +
+    geom_line(data = predict_gsp, aes(y = .fitted), color = "darkgreen") + 
+    geom_ribbon(data = predict_gsp, aes(y = .fitted, ymin = .lower, ymax = .upper), fill = "green", alpha = 0.4) +
+    labs(x = "Date",
+        y = "Cases per 100k population",
+        title = "Cases in GSP Area (South Carolina)",
+        subtitle = "Cases per 100,000",
+        caption = "Red line: rolling mean (14 days)\nGreen line: prediction based on 14 previous days")
+
+ggsave("projections/covid19-SCGSP-linearpredict14days.pdf", width=11, height=8)
