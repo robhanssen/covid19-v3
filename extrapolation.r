@@ -7,6 +7,7 @@ library(ggfortify)
 
 theme_set(theme_light())
 
+load("Rdata/us_casesdeaths.Rdata")
 
 find_value <- function(x,y,target=c(0, 2,5,10)) {
     aa <- approx(y,x,xout=target)$y
