@@ -210,13 +210,15 @@ predict_gsp <- cdbl_gsp %>%
         lm(casesper100k ~ date, data=.) %>%
         augment(newdata = next2weeks, interval = "confidence")
 
+date10 = find_value(predict_gsp$date, predict_gsp$.fitted, target=10)
+
 ggplot(data = cdbl_gsp) +
     aes(x = date, y = casesper100k) +
     geom_point() +
     geom_line(data = cdbl_gsp, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "right")), color = "red") +
     geom_line(data = cdbl_gsp, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "center")), color = "red", lty = 2) +        
     expand_limits(x = max(cdbl_gsp$date + 20)) +
-    scale_y_continuous(limit = c(-15, 40), breaks = seq(0, 100, 10)) +
+    scale_y_continuous(limit = c(0, 40), breaks = seq(0, 100, 10)) +
     scale_x_date(breaks = "2 weeks", date_labels = "%b %d") +
     geom_line(data = predict_gsp, aes(y = .fitted), color = "darkgreen") + 
     geom_ribbon(data = predict_gsp, aes(y = .fitted, ymin = .lower, ymax = .upper), fill = "green", alpha = 0.4) +
@@ -224,6 +226,8 @@ ggplot(data = cdbl_gsp) +
         y = "Cases per 100k population",
         title = "Cases in GSP Area (South Carolina)",
         subtitle = "Cases per 100,000",
-        caption = "Red line: rolling mean (14 days)\nGreen line: prediction based on 14 previous days")
+        caption = "Red line: rolling mean (14 days)\nGreen line: prediction based on 14 previous days") + 
+    geom_vline(xintercept =  date10, color = "red", lty = 2) + 
+    geom_hline(yintercept = 10, color = "black", lty = 2)
 
 ggsave("projections/covid19-SCGSP-linearpredict14days.pdf", width=11, height=8)
