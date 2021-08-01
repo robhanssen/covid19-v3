@@ -266,11 +266,15 @@ us_casesdeaths %>% filter(state==selected_state) %>%
                                   deathsper100k = deaths / population * 1e5
                                   ) %>% ungroup() -> casesdeathsbylocation
 
+topstatemaxcases = (max(casesdeathsbylocation$casesper100k) %/% 10 + 1) * 10
+
+ymax = 150
+ymax = ifelse(topstatemaxcases > 150, topstatemaxcases, 150)
 
 casesdeathsbylocation %>% #filter( location == region) %>%
                 ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                         geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
-                        scale_y_continuous(breaks=c(0,2,5,10,20, 50,100), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1)), limits=c(0,150))  +
+                        scale_y_continuous(breaks=c(0,2,5,10,20, 50,100, 100 + 50 * 1:10), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1)), limits=c(0,ymax))  +
                         scale_x_date(date_breaks="1 months", date_labels = "%b %d") + 
                         labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
                         ggtitle(paste(selected_state, "daily cases and deaths with", avdays,"days average line")) + 
