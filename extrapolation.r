@@ -96,7 +96,7 @@ lims <- linmod %>%
     + expand_limits(x=max(cdbl$date+60))
     + geom_smooth(method="lm", fullrange=TRUE)
     # + geom_line(data=linmod, aes(y=.fitted), color="blue", lty=2)
-    + scale_y_continuous(limit=c(-10,40), breaks=seq(0,100,10))
+    + scale_y_continuous(limit=c(-10,100), breaks=seq(0,100,10))
     + scale_x_date(breaks="2 weeks", date_labels="%b %d")
     + geom_hline(yintercept=10,lty=2)
     + geom_vline(data=lims,aes(xintercept=date),lty=2)
@@ -144,7 +144,7 @@ lims_gsp <- (cdbl_gsp
     + geom_point()
     + expand_limits(x=max(cdbl$date+20))
     + geom_smooth(method="lm", fullrange=TRUE)
-    + scale_y_continuous(limit=c(-15,40), breaks=seq(0,100,10))
+    + scale_y_continuous(limit=c(-15,100), breaks=seq(0,100,10))
     + scale_x_date(breaks="2 weeks", date_labels="%b %d")
     + geom_hline(yintercept=10,lty=2)
     + geom_vline(data=lims_gsp,aes(xintercept=date),lty=2)  
@@ -219,7 +219,7 @@ ggplot(data = cdbl_gsp) +
     geom_line(data = cdbl_gsp, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "right")), color = "red") +
     geom_line(data = cdbl_gsp, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "center")), color = "red", lty = 2) +        
     expand_limits(x = max(cdbl_gsp$date + 20)) +
-    scale_y_continuous(limit = c(0, 40), breaks = seq(0, 100, 10)) +
+    scale_y_continuous(limit = c(0, 100), breaks = seq(0, 100, 10)) +
     scale_x_date(breaks = "2 weeks", date_labels = "%b %d") +
     geom_line(data = predict_gsp, aes(y = .fitted), color = "darkgreen") + 
     geom_ribbon(data = predict_gsp, aes(y = .fitted, ymin = .lower, ymax = .upper), fill = "green", alpha = 0.4) +
@@ -258,7 +258,7 @@ ggplot(data = cdbl) +
     geom_line(data = cdbl, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "right")), color = "red") +
     geom_line(data = cdbl, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "center")), color = "red", lty = 2) +        
     expand_limits(x = max(cdbl$date + 20)) +
-    scale_y_continuous(limit = c(0, 40), breaks = seq(0, 100, 10)) +
+    scale_y_continuous(limit = c(0, 100), breaks = seq(0, 100, 10)) +
     scale_x_date(breaks = "2 weeks", date_labels = "%b %d") +
     geom_line(data = predict_gsp, aes(y = .fitted), color = "darkgreen") + 
     geom_ribbon(data = predict_gsp, aes(y = .fitted, ymin = .lower, ymax = .upper), fill = "green", alpha = 0.4) +
