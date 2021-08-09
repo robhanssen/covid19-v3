@@ -11,25 +11,32 @@ stategov <- read_csv("sources/stategov.csv")
 inauguration = as.Date("2021-01-20")
 election = as.Date("2020-11-03")
 
-firstdeath = min(us_casesdeaths[with(us_casesdeaths, which(deaths>0)),]$date)
+firstdeath <- min(us_casesdeaths[with(us_casesdeaths, which(deaths>0)),]$date)
 avdays <- 7
+colorset <- c("D" = "blue", "R" = "red")
 
 casesperday <- us_casesdeaths %>%
         inner_join(stategov) %>%
         select(-governor) %>%
-        group_by(date, party) %>%
+        group_by(party, date) %>%
         summarize(cases = sum(cases), 
                   deaths = sum(deaths), 
                   population = sum(population),
                   casesper100k = cases / population * 1e5,
                   deathsper100k = deaths / population * 1e5
-                  ) %>% ungroup() %>% group_by(party)  %>%
-        mutate(cumcases = cumsum(cases),
-               cumdeath = cumsum(deaths),
-               ) %>% ungroup() %>%
-        filter(date >= as.Date("2020-03-01"))
+                  ) %>%
+        ungroup() %>%
+        filter(date > firstdeath)
+                  
 
-colorset = c("D" = "blue", "R" = "red")
+cumulative <- casesperday %>%
+                group_by(party)  %>%
+                mutate(cumcases = cumsum(cases),
+                       cumdeath = cumsum(deaths),
+               ) %>% 
+               ungroup()
+
+
 
 
 casesperday %>%
@@ -78,7 +85,7 @@ casesperday %>%
         scale_y_continuous(labels = scales::comma_format()) + 
         labs(x = "Date", y = "New deaths per day", color = "Governor\nparty affiliation")
 
-casesperday %>%
+cumulative %>%
         ggplot +
         aes(x = date, y = cumdeath, color = party) +
         geom_point() +
@@ -90,7 +97,7 @@ casesperday %>%
         scale_y_continuous(labels = scales::comma_format()) + 
         labs(x = "Date", y = "Cumulative deaths", color = "Governor\nparty affiliation")
 
-casesperday %>%
+cumulative %>%
         ggplot +
         aes(x = date, y = cumcases, color = party) +
         geom_point() +
