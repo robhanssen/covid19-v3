@@ -12,7 +12,7 @@ inauguration = as.Date("2021-01-20")
 election = as.Date("2020-11-03")
 
 firstdeath = min(us_casesdeaths[with(us_casesdeaths, which(deaths>0)),]$date)
-avdays=7
+avdays <- 7
 
 casesperday <- us_casesdeaths %>%
         inner_join(stategov) %>%
@@ -26,7 +26,7 @@ casesperday <- us_casesdeaths %>%
                   ) %>% ungroup() %>% group_by(party)  %>%
         mutate(cumcases = cumsum(cases),
                cumdeath = cumsum(deaths),
-               ) %>%
+               ) %>% ungroup() %>%
         filter(date >= as.Date("2020-03-01"))
 
 colorset = c("D" = "blue", "R" = "red")
@@ -36,7 +36,7 @@ casesperday %>%
         ggplot +
         aes(x = date, y = casesper100k, color = party) +
         # geom_point() +
-        geom_line(aes(y = rollmean(casesper100k, avdays, na.pad=TRUE))) + 
+        geom_line(aes(y = rollmean(casesper100k, 7, na.pad=TRUE))) + 
         theme_light() + 
         scale_color_manual(values = colorset) + 
         scale_x_date(date_breaks = "3 months", date_label = "%b\n%Y") + 
