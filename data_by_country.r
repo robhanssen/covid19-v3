@@ -22,6 +22,7 @@ selected_country = "United Kingdom"
 selected_country = "Sweden"
 selected_country = "Namibia"
 selected_country = "Israel"
+selected_country = "US"
 
 
         casesdeaths %>% filter(country==selected_country) %>% filter(date>as.Date("2020-03-01")) %>%
