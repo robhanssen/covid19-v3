@@ -71,7 +71,7 @@ casesperday %>%
         scale_x_date(date_breaks = "3 months", date_label = "%b %Y")  +
         scale_y_continuous(labels = scales::comma_format()) + 
         labs(x = "Date", y = "New deaths per 100k per day", color = "Governor\nparty affiliation")
-
+ggsave("misc/deaths-per-day-by-governor.png")
 
 casesperday %>%
         ggplot +
