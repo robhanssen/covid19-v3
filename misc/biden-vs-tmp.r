@@ -103,19 +103,19 @@ us_casesdeaths %>%  group_by(date) %>%
 ggsave("misc/cumulative-covid19cases-under-president.png")                    
 
 
-us_casesdeaths %>%  group_by(date) %>% 
+us_casesdeaths %>%  group_by(date) %>% filter(date > as.Date("2021-04-01")) %>%
                     summarize(cases=sum(cases)) %>%  
                     summarize(date=date, ccases=cumsum(cases)) %>% 
                     mutate(president=ifelse(date< inauguration, "Trump", "Biden"), 
                             president=factor(president, levels=c("Trump","Biden"))) %>% 
                     mutate(firstdiv = ccases - lag(ccases)) %>% mutate(secdiff = firstdiv - lag(firstdiv)) %>% #write_csv("sigmoid.csv")
-                    ggplot + aes(x=date, y=secdiff, color=president) + #geom_point() +
-                    scale_x_date(date_breaks="3 months", date_label="%b %Y") + 
+                    ggplot + aes(x=date, y=secdiff) + #, color=president) + #geom_point() +
+                    scale_x_date(date_breaks="1 months", date_label="%b %Y") + 
                     scale_y_continuous(label=scales::comma_format()) + 
                     scale_color_manual(values= c("Trump" = "red", "Biden"="blue"))  + 
                     theme_light() + 
                     labs(x="Date", 
-                        y="Cumulative cases", 
+                        y="Cumulative cases (2nd derivative)", 
                         color="President", 
                         caption="Vertical lines indicate Election Day 2020 (red) and Inauguration Day 2021 (blue)",
                         title=paste0(avdays,"-day rolling second derivative of cumulative cases in the United States")) + 
