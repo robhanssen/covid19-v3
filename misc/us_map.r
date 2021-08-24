@@ -49,7 +49,7 @@ ggsave("misc/map_us_half.png")
 orderedcounties <- counties %>%
         arrange(-population) %>%
         mutate(cumpop = cumsum(population)) %>%
-        mutate(halfway = ifelse(cumpop > totalpop * .90, TRUE, FALSE)) %>%
+        mutate(halfway = ifelse(cumpop > totalpop * .80, TRUE, FALSE)) %>%
         select(state, county, halfway)
 
 
@@ -64,7 +64,7 @@ colorset = c("TRUE" = "darkgreen", "FALSE" = "red")
 ggplot(data = orderedcountymapdata) + 
   geom_polygon(aes(x = long, y = lat, fill = halfway, group = group), color = "white", size=0) + 
   coord_fixed(1.4) + scale_fill_manual(values = colorset) +
-  labs(x = "Long", y = "Lat", title = "90% of Americans live in the red zone.") +
+  labs(x = "Long", y = "Lat", title = "80% of Americans live in the red zone.") +
   theme(legend.position = "none")
   
-  ggsave("misc/map_us_90.png")
+  ggsave("misc/map_us_80.png")
