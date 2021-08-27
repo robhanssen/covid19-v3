@@ -27,9 +27,24 @@ casesperday <- us_casesdeaths %>%
                   ) %>%
         ungroup() %>%
         filter(date > firstdeath)
-                  
 
-cumulative <- casesperday %>%
+casesperday_D <- casesperday %>%
+        arrange(date) %>%
+        filter(party == "D") %>%
+        mutate(wave = rollmean(casesper100k, 7, na.pad=TRUE),
+                wave_deaths = rollmean(deathsper100k, 7, na.pad=TRUE)
+        )
+
+
+casesperday_R <- casesperday %>%
+        arrange(date) %>%
+        filter(party == "R") %>%
+        mutate(wave = rollmean(casesper100k, 7, na.pad=TRUE),
+                wave_deaths = rollmean(deathsper100k, 7, na.pad=TRUE)
+        )
+
+
+cumulative <- casesperday %>% arrange(party) %>%
                 group_by(party)  %>%
                 mutate(cumcases = cumsum(cases),
                        cumdeath = cumsum(deaths),
@@ -43,7 +58,9 @@ casesperday %>%
         ggplot +
         aes(x = date, y = casesper100k, color = party) +
         # geom_point() +
-        geom_line(aes(y = rollmean(casesper100k, 7, na.pad=TRUE))) + 
+        #geom_line(aes(y = rollmean(casesper100k, 7, na.pad=TRUE))) + 
+        geom_line(aes(y=wave), data = casesperday_D, color = "blue") +
+        geom_line(aes(y=wave), data = casesperday_R, color = "red") +
         theme_light() + 
         scale_color_manual(values = colorset) + 
         scale_x_date(date_breaks = "3 months", date_label = "%b\n%Y") + 
@@ -54,7 +71,7 @@ casesperday %>%
         ggplot +
         aes(x = date, y = cases, color = party) +
         # geom_point() +
-        geom_line(aes(y = rollmean(cases, avdays, na.pad=TRUE))) + 
+#        geom_line(aes(y = rollmean(cases, avdays, na.pad=TRUE))) + 
         theme_light() + 
         scale_color_manual(values = colorset) + 
         scale_x_date(date_breaks = "3 months", date_label = "%b %Y") +
@@ -65,7 +82,10 @@ casesperday %>%
         ggplot +
         aes(x = date, y = deathsper100k, color = party) +
         # geom_point() +
-        geom_line(aes(y = rollmean(deathsper100k, avdays, na.pad=TRUE))) + 
+        geom_line(aes(y=wave_deaths), data = casesperday_D, color = "blue") +
+        geom_line(aes(y=wave_deaths), data = casesperday_R, color = "red") +
+
+        # geom_line(aes(y = rollmean(deathsper100k, avdays, na.pad=TRUE))) + 
         theme_light() + 
         scale_color_manual(values = colorset) + 
         scale_x_date(date_breaks = "3 months", date_label = "%b %Y")  +
