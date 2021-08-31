@@ -23,7 +23,7 @@ avdays=7
 totalcasecomment=""
 capt="insert caption here"
 # world cases and deaths growth
-timecutoff = today() - months(12)
+timecutoff = today() %m-% months(12)
 
 casesdeaths %>% filter(date > timecutoff) %>%
                 mutate(partofworld = ifelse(country=="India" | continent=="Latin America", "India and Latin America", "Rest of World")) %>% 
@@ -179,7 +179,7 @@ for (selected_country in countrylist)
 
         ylimit_max = ifelse(ylimit_max > 150, ylimit_max, 150)
 
-        casesdeathsbylocation %>% filter(date > today() - months(12)) %>%
+        casesdeathsbylocation %>% filter(date > today() %m-% months(12)) %>%
                         ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                                 geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
                                 scale_y_continuous(limit=c(0,ylimit_max), breaks=c(0,2,5,10,20,50,100,150,200,300), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
@@ -210,7 +210,7 @@ for (selected_continent in continentlist)
                                           ) %>% ungroup() -> casesdeathsbylocation
 
 
-        casesdeathsbylocation %>% filter(date > today() - months(12)) %>%
+        casesdeathsbylocation %>% filter(date > today() %m-% months(12)) %>%
                         ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                                 geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
                                 scale_y_continuous(limit=c(0,100), breaks=c(0,2,5,10,20,50,100,150), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
@@ -242,7 +242,7 @@ selected_country = "India"
                                           ) %>% ungroup() -> casesdeathsbylocation
 
 
-        casesdeathsbylocation %>% filter(date > today() - months(12)) %>%
+        casesdeathsbylocation %>% filter(date > today() %m-% months(12)) %>%
                         ggplot + aes(date, cases) + geom_line(color="blue", linetype="dotted") + 
                                 geom_line(aes(y=rollmean(cases,avdays, na.pad=TRUE)), size=2, color="blue") + 
                                 scale_y_continuous(breaks=1e5*1:20, sec.axis = sec_axis(~ ./correction, breaks=1e3*seq(0,5,1))) + 
