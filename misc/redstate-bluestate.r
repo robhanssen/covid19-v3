@@ -78,7 +78,7 @@ casesperday %>%
         scale_y_continuous(labels = scales::comma_format()) + 
         labs(x = "Date", y = "New cases per day", color = "Governor\nparty affiliation")
 
-casesperday %>%
+casesperday %>% 
         ggplot +
         aes(x = date, y = deathsper100k, color = party) +
         # geom_point() +
@@ -88,7 +88,7 @@ casesperday %>%
         # geom_line(aes(y = rollmean(deathsper100k, avdays, na.pad=TRUE))) + 
         theme_light() + 
         scale_color_manual(values = colorset) + 
-        scale_x_date(date_breaks = "3 months", date_label = "%b %Y")  +
+        scale_x_date(date_breaks = "3 months", date_label = "%b %Y", limit = c(as.Date("2021-04-01"),NA))  +
         scale_y_continuous(labels = scales::comma_format()) + 
         labs(x = "Date", y = "New deaths per 100k per day", color = "Governor\nparty affiliation")
 ggsave("misc/deaths-per-day-by-governor.png")

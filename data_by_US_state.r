@@ -24,6 +24,7 @@ selected_state = "South Carolina"
 selected_state = "Florida"
 selected_state = "Louisiana"
 selected_state = "Alabama"
+selected_state = "Mississippi"
 
 us_casesdeaths %>% filter(state==selected_state) %>%
                         group_by(date) %>%
