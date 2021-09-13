@@ -95,6 +95,7 @@ casesperday %>%
         scale_y_continuous(labels = scales::comma_format()) + 
         labs(x = "Date", y = "New deaths per day", color = "House of Rep\nparty affiliation")
 
+cumdeaths <-
 cumulative %>%
         ggplot +
         aes(x = date, y = cumdeath, color = houseparty) +
@@ -102,11 +103,12 @@ cumulative %>%
         # geom_line(aes(y = rollmean(deaths, avdays, na.pad=TRUE))) + 
         theme_light() + 
         scale_color_manual(values = colorset) + 
-        scale_x_date(date_breaks = "3 months", date_label = "%b %Y") +
-        scale_x_date(date_breaks = "3 months", date_label = "%b %Y") +
+        scale_x_date(date_breaks = "6 months", date_label = "%b %Y") +
+        scale_x_date(date_breaks = "6 months", date_label = "%b %Y") +
         scale_y_continuous(labels = scales::comma_format()) + 
         labs(x = "Date", y = "Cumulative deaths", color = "House of Rep\nparty affiliation")
 
+cumcases <-
 cumulative %>%
         ggplot +
         aes(x = date, y = cumcases, color = houseparty) +
@@ -115,10 +117,15 @@ cumulative %>%
         theme_light() + 
         scale_color_manual(values = colorset) + 
 #        scale_x_date(date_breaks = "3 months", date_label = "%b %Y") +
-        scale_x_date(date_breaks = "3 months", date_label = "%b %Y") +
+        scale_x_date(date_breaks = "6 months", date_label = "%b %Y") +
         scale_y_continuous(labels = scales::comma_format()) + 
         labs(x = "Date", y = "Cumulative cases", color = "House of Rep\nparty affiliation")
 
+library(patchwork)
+
+cumdeaths + cumcases
+
+ggsave("misc/casedeaths.png", width = 10, height = 4)
 
 cases_by_house <- us_casesdeaths %>%
         filter(date > as.Date("2021-06-01")) %>%
