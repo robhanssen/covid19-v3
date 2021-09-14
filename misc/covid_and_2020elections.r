@@ -9,7 +9,7 @@ electionresults <- read_csv("sources/2020electionresults.csv") %>%
         mutate(trumpvictory = cut(per_gop, c(0,0.1 * 1:10), 
                                            c("<10%", "10-20","20-30","30-40","40-50","50-60","60-70","70-80","80-90",">90%"))) %>%
         mutate(trumpvictory = factor(trumpvictory)) %>%
-        select(state, county, trumpvictory)
+        select(state, county, trumpvictory, per_gop)
 
 # statepop <- us_casesdeaths %>%
 #                 select(state, county, population) %>%
@@ -56,7 +56,7 @@ casesperelection %>%
 
 ggsave("misc/deathsbyelectionresults.png", width = 6, height = 6)
 
-casesperday %>%
+casesperelection %>%
     ggplot + 
         aes(trumpvictory, casesper100k, fill = trumpvictory) + 
         geom_col() +
@@ -65,3 +65,36 @@ casesperday %>%
         theme_light() + 
         theme(legend.position = "none")
 
+############################
+
+casespercounty <- us_casesdeaths %>% filter(date > election) %>%
+        group_by(county, state) %>%
+        summarize(cases = sum(cases), 
+                  deaths = sum(deaths)) %>%
+        inner_join((statepop)) %>%
+        ungroup() %>%
+                inner_join(electionresults) %>%
+        mutate(
+                casesper100k = cases / population * 1e5,
+                deathsper100k = deaths / population * 1e5
+                  )
+
+
+
+casespercounty %>% 
+        ggplot + 
+        aes(x = per_gop, y = deathsper100k) + geom_point() + 
+        geom_smooth(method = "lm")
+
+casespercounty %>% 
+        ggplot + 
+        aes(x = population, y = per_gop) + geom_point() + 
+        scale_x_log10(labels = scales::comma_format()) + 
+        geom_smooth(method = "lm")
+
+casespercounty %>% mutate(counter = per_gop * population) %>% summarize(voters = sum(counter))
+
+casespercounty %>% 
+        ggplot + 
+        aes(x = per_gop, y = casesper100k) + geom_point() + 
+        geom_smooth(method = "lm")
