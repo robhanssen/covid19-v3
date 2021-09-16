@@ -49,8 +49,10 @@ casesperelection %>%
     ggplot +
         aes(trumpvictory, deathsper100k, fill = trumpvictory) +
         geom_col() +
-        labs(x = "Percentage of votes for Trump in 2020 elections",
-             y = "Cumulative COVID-19 deaths per 100,000 after Election Day 2020") +
+        labs(title = "What happens when virus response is politicized?",
+             x = "Percentage of votes for Trump in 2020 elections",
+             y = "Cumulative COVID-19 deaths per 100,000\nafter Election Day 2020",
+             caption = paste0("COVID-19 deaths from Election Day 2020 until ", format(today(), format = "%b %d, %Y"))) +
         theme_light() +
         theme(legend.position = "none")
 
