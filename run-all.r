@@ -8,6 +8,8 @@ if (lastreadus != today()) {
 
 source("process_us_data.r")
 source("extrapolation.r")
+source("USstates_models.r")
+
 
 load("Rdata/global_casesdeaths.Rdata")
 if (lastreadglobal != today()) {
