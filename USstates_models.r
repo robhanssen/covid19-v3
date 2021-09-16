@@ -17,7 +17,7 @@ statepop <- us_casesdeaths %>%
 
 min_country_population = 1000
 twoweeksago = today() - days(14)
-
+loglabels = rep(c(1,2,5),8) * 10^(rep(1:8, each = 3))
 
 
 absdeathsmodel <- function(tbl) {
@@ -180,12 +180,14 @@ G2 <-
     select(state, deaths, estimate) %>%
     slice_max(estimate, n=20) %>%
     ggplot + 
-        aes(x = deaths, y = estimate, label = state) + 
+        aes(x = deaths + 1, y = estimate, label = state) + 
         geom_point() +
         ggrepel::geom_label_repel() + 
-        scale_x_log10() +
+        scale_x_log10(labels = scales::comma_format(), breaks = loglabels) +
         labs(x = "Daily deaths",
-             y = "Growth in daily deaths")
+             y = "Growth in daily deaths") +
+        expand_limits(y = 0)
+
 
 
 G3 <-
@@ -193,27 +195,29 @@ uscases_twoweekav %>%
     ungroup() %>%
     inner_join(abscaseparameters) %>%
     select(state, cases, estimate) %>%
-    slice_max(estimate, n=20) %>%
+    slice_max(estimate, n = 20) %>%
     ggplot + 
-        aes(x = cases, y = estimate, label = state) + 
+        aes(x = cases + 1, y = estimate, label = state) + 
         geom_point() +
         ggrepel::geom_label_repel() + 
-        scale_x_log10(labels = scales::comma_format()) +
+        scale_x_log10(labels = scales::comma_format(), breaks = loglabels) +
         labs(x = "Daily new cases",
-             y = "Growth in daily new cases")
+             y = "Growth in daily new cases") +
+        expand_limits(y = 0)
 
 G4 <-
 uscases_twoweekav %>% 
     ungroup() %>%
     inner_join(caseparameters) %>%
     select(state, casesper100k, estimate) %>%
-    slice_max(estimate, n=20) %>%
+    slice_max(estimate, n = 25) %>%
     ggplot + 
         aes(x = casesper100k, y = estimate, label = state) + 
         geom_point() +
         ggrepel::geom_label_repel() + 
         labs(x = "Daily new cases per 100,000 population",
-             y = "Growth in daily new cases per 100,000 population ")
+             y = "Growth in daily new cases per 100,000 population ") +
+        expand_limits(y = 0, x = 0)
 
 (G2 + G3) / (G1 + G4)
 
@@ -248,7 +252,7 @@ G6 <-
 caseparameters %>% 
     rename(caseestimate = "estimate") %>%
     inner_join(deathparameters, by = "state") %>%
-    slice_max(abs(caseestimate), n = 130) %>%
+    slice_max(abs(estimate), n = 130) %>%
     select(state, caseestimate, estimate) %>%
     ggplot + 
         aes(x = caseestimate, y = estimate, label = state) + 
