@@ -16,3 +16,4 @@ if (lastreadglobal != today()) {
         }
 
 source("process_global_data.r")
+source("worldmodels.r")
