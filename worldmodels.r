@@ -2,6 +2,7 @@ library(tidyverse)
 library(lubridate)
 library(broom)
 library(patchwork)
+theme_set(theme_light())
 source("config.r")
 
 # main data is called global_casesdeaths
@@ -202,3 +203,49 @@ casesdeaths %>%
 (G2 + G3) / (G1 + G4)
 
 ggsave("projections/covid19-state_growth.pdf", width = 11, height = 8)
+
+
+max_x <- max(abs(abscaseparameters$estimate))
+max_y <- max(abs(absdeathparameters$estimate))
+
+G5 <-
+abscaseparameters %>% 
+    rename(caseestimate = "estimate") %>%
+    inner_join(absdeathparameters, by = "country") %>%
+    slice_max(abs(caseestimate), n = 30) %>%
+    select(country, caseestimate, estimate) %>%
+    ggplot + 
+        aes(x = caseestimate, y = estimate, label = country) + 
+        geom_point() +
+        ggrepel::geom_label_repel() + 
+        labs(x = "Growth in daily new cases",
+             y = "Growth in daily new deaths") + 
+        geom_vline(xintercept = 0) + 
+        geom_hline(yintercept = 0) + 
+        scale_x_continuous(limits = c(-max_x, max_x)) +
+        scale_y_continuous(limits = c(-max_y, max_y))
+
+
+max_x <- max(abs(caseparameters$estimate))
+max_y <- max(abs(deathparameters$estimate))
+
+G6 <-
+caseparameters %>% 
+    rename(caseestimate = "estimate") %>%
+    inner_join(deathparameters, by = "country") %>%
+    slice_max(abs(caseestimate), n = 30) %>%
+    select(country, caseestimate, estimate) %>%
+    ggplot + 
+        aes(x = caseestimate, y = estimate, label = country) + 
+        geom_point() +
+        ggrepel::geom_label_repel() + 
+        labs(x = "Growth in daily new cases per 100k population",
+             y = "Growth in daily new deaths per 100k population") + 
+        geom_vline(xintercept = 0) + 
+        geom_hline(yintercept = 0) + 
+        scale_x_continuous(limits = c(-max_x, max_x)) +
+        scale_y_continuous(limits = c(-max_y, max_y))
+
+(G5 + G6)
+
+ggsave("projections/covid19-dailychange.pdf", width = 11, height = 8)
