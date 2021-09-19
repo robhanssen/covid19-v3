@@ -142,18 +142,20 @@ colors = c("<25%" = "blue", "25-50%" = "#F09620", "50-75%" = "#e300f8", ">75%" =
 
 casesperelection %>% 
     ggplot +
-        aes(trumpvictory, deathsper100k, fill = stage) +
-        geom_col() +
+        aes(trumpvictory, deathsper100k, fill = stage, group = TRUE) +
+        # geom_bar(stat = "identity", position = "dodge") +
+        geom_line() + 
         labs(title = "What happens when virus response is politicized?",
              fill = "Pandemic stage",   
              x = "Percentage of votes for Trump in 2020 elections",
              y = "Cumulative COVID-19 deaths per 100,000\nafter Election Day 2020",
-             caption = paste0("COVID-19 deaths from Election Day 2020 until ", format(today(), format = "%b %d, %Y"))) +
+             caption = paste0("COVID-19 deaths split at July 1st, 2020 from Mar 2020 until ", format(today(), format = "%b %d, %Y"))) +
         theme_light() +
+        facet_wrap(~stage) +
         scale_fill_manual(values = stagecolor) #+
         # theme(legend.position = "none")
 
-#ggsave("misc/deathsbyelectionresults.png", width = 6, height = 6)
+ggsave("misc/deathsbyelectionresults-split.pdf", width = 11, height = 8)
 
 casesperelection %>%
     ggplot +
