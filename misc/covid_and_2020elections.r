@@ -54,6 +54,7 @@ casesperelection %>%
              y = "Cumulative COVID-19 deaths per 100,000\nafter Election Day 2020",
              caption = paste0("COVID-19 deaths from Election Day 2020 until ", format(today(), format = "%b %d, %Y"))) +
         theme_light() +
+        scale_y_continuous(breaks = 50 * 1:10) +
         theme(legend.position = "none")
 
 ggsave("misc/deathsbyelectionresults.png", width = 6, height = 6)
@@ -152,6 +153,7 @@ casesperelection %>%
              caption = paste0("COVID-19 deaths split at July 1st, 2020 from Mar 2020 until ", format(today(), format = "%b %d, %Y"))) +
         theme_light() +
         facet_wrap(~stage) +
+        scale_y_continuous(breaks = 50 * 1:10) +
         scale_fill_manual(values = stagecolor) #+
         # theme(legend.position = "none")
 
