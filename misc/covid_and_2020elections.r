@@ -2,8 +2,11 @@ library(tidyverse)
 library(lubridate)
 library(zoo)
 library(broom)
+library(patchwork)
 
 load("Rdata/us_casesdeaths.Rdata")
+
+colorscale <- scales::seq_gradient_pal("blue", "red", "Lab")(seq(0,1,length.out=10))
 
 electionresults <- read_csv("sources/2020electionresults.csv") %>% 
         mutate(trumpvictory = cut(per_gop, c(0,0.1 * 1:10), 
@@ -43,7 +46,7 @@ casesperelection <- us_casesdeaths %>% filter(date > election) %>%
                   deathsper100k = deaths / population * 1e5
                   )
 
-colors = c("<25%" = "blue", "25-50%" = "#4d20f0", "50-75%" = "#e300f8", ">75%" = "red")
+# colors = c("<25%" = "blue", "25-50%" = "#4d20f0", "50-75%" = "#e300f8", ">75%" = "red")
 
 casesperelection %>%
     ggplot +
@@ -55,7 +58,9 @@ casesperelection %>%
              caption = paste0("COVID-19 deaths from Election Day 2020 until ", format(today(), format = "%b %d, %Y"))) +
         theme_light() +
         scale_y_continuous(breaks = 50 * 1:10) +
-        theme(legend.position = "none")
+        theme(legend.position = "none") +
+        scale_fill_manual(values = colorscale)
+
 
 ggsave("misc/deathsbyelectionresults.png", width = 6, height = 6)
 
@@ -143,9 +148,9 @@ colors = c("<25%" = "blue", "25-50%" = "#F09620", "50-75%" = "#e300f8", ">75%" =
 
 casesperelection %>% 
     ggplot +
-        aes(trumpvictory, deathsper100k, fill = stage, group = TRUE) +
+        aes(trumpvictory, deathsper100k, fill = trumpvictory, group = TRUE) +
         # geom_bar(stat = "identity", position = "dodge") +
-        geom_line() + 
+        geom_col() + 
         labs(title = "What happens when virus response is politicized?",
              fill = "Pandemic stage",   
              x = "Percentage of votes for Trump in 2020 elections",
@@ -154,8 +159,9 @@ casesperelection %>%
         theme_light() +
         facet_wrap(~stage) +
         scale_y_continuous(breaks = 50 * 1:10) +
-        scale_fill_manual(values = stagecolor) #+
-        # theme(legend.position = "none")
+        scale_fill_manual(values = colorscale) +
+        theme(legend.position = "none") +
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5))
 
 ggsave("misc/deathsbyelectionresults-split.pdf", width = 11, height = 8)
 
@@ -170,3 +176,85 @@ casesperelection %>%
         theme_light() +
         scale_fill_manual(values = stagecolor) +
         theme(legend.position = "none")
+
+#######################
+
+cases <- us_casesdeaths %>%
+        mutate(period = paste0(year(date), "Q", quarter(date))) %>%
+        inner_join(electionresults) %>%
+        group_by(county, state, trumpvictory, period) %>%
+        summarize(cases = sum(cases), 
+                  deaths = sum(deaths)) %>%
+        inner_join((statepop)) %>%
+        ungroup() %>%
+        group_by(trumpvictory, period) %>%
+        summarize(cases = sum(cases), deaths = sum(deaths), population = sum(population)) %>%
+                mutate(
+
+                  casesper100k = cases / population * 1e5,
+                  deathsper100k = deaths / population * 1e5
+                  )
+
+# colorscale <- scales::seq_gradient_pal("blue", "red", "Lab")(seq(0,1,length.out=10))
+
+deathsgraph <-
+cases %>% mutate(period = factor(period)) %>% filter(period != "2020Q1") %>%
+    ggplot +
+        aes(trumpvictory, deathsper100k, color = trumpvictory, group = TRUE) +
+        geom_point() +
+        geom_line()  +
+        facet_wrap(~period) + 
+        labs(title = "What happens when virus response is politicized?",
+             x = "Percentage of votes for Trump in 2020 elections",
+             y = "Cumulative COVID-19 cases per 100,000",
+             caption = paste0("COVID-19 deaths until ", format(today(), format = "%b %d, %Y"))) +
+        theme_light() +
+        # scale_fill_manual(values = stagecolor) +
+        scale_y_continuous(breaks = 50 * 0:10, limits = c(0, NA)) +
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5)) +
+        theme(legend.position = "none") +
+        scale_color_manual(values = colorscale)
+
+
+
+
+casegraph <-
+cases %>% mutate(period = factor(period)) %>% filter(period != "2020Q1") %>%
+    ggplot +
+        aes(trumpvictory, casesper100k, color = trumpvictory, group = TRUE) +
+        geom_point() +
+        geom_line()  +
+        facet_wrap(~period) + 
+        labs(title = "What happens when virus response is politicized?",
+             x = "Percentage of votes for Trump in 2020 elections",
+             y = "Cumulative COVID-19 cases per 100,000",
+             caption = paste0("COVID-19 deaths until ", format(today(), format = "%b %d, %Y"))) +
+        theme_light() +
+        # scale_fill_manual(values = stagecolor) +
+        scale_y_continuous(breaks = 1000 * 0:10, limits = c(0, NA)) +
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5)) +
+        theme(legend.position = "none") +
+        scale_color_manual(values = colorscale)
+
+
+(casegraph + deathsgraph)
+
+ggsave("misc/covid_and_election_byperiod.pdf", width = 11, heigh = 8)
+
+
+cases %>% mutate(period = factor(period)) %>% filter(period != "2020Q1") %>%
+    ggplot +
+        aes(trumpvictory, deathsper100k/casesper100k, color = trumpvictory, group = TRUE) +
+        geom_point() +
+        geom_line()  +
+        facet_wrap(~period) + 
+        labs(title = "",
+             x = "Percentage of votes for Trump in 2020 elections",
+             y = "Death rate of confirmed infections",
+             caption = paste0("COVID-19 data until ", format(today(), format = "%b %d, %Y"))) +
+        theme_light() +
+        # scale_fill_manual(values = stagecolor) +
+        scale_y_continuous(breaks = 0.01 * 0:10, limits = c(0, NA), labels = scales::percent_format()) +
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5)) +
+        theme(legend.position = "none") +
+        scale_color_manual(values = colorscale)
