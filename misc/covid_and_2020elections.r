@@ -204,7 +204,7 @@ cases %>% mutate(period = factor(period)) %>% filter(period != "2020Q1") %>%
         geom_point() +
         geom_line()  +
         facet_wrap(~period) + 
-        labs(title = "What happens when virus response is politicized?",
+        labs(title = "",
              x = "Percentage of votes for Trump in 2020 elections",
              y = "Cumulative COVID-19 cases per 100,000",
              caption = paste0("COVID-19 deaths until ", format(today(), format = "%b %d, %Y"))) +
@@ -237,11 +237,8 @@ cases %>% mutate(period = factor(period)) %>% filter(period != "2020Q1") %>%
         scale_color_manual(values = colorscale)
 
 
-(casegraph + deathsgraph)
 
-ggsave("misc/covid_and_election_byperiod.pdf", width = 11, heigh = 8)
-
-
+deathrategraph <-
 cases %>% mutate(period = factor(period)) %>% filter(period != "2020Q1") %>%
     ggplot +
         aes(trumpvictory, deathsper100k/casesper100k, color = trumpvictory, group = TRUE) +
@@ -258,3 +255,10 @@ cases %>% mutate(period = factor(period)) %>% filter(period != "2020Q1") %>%
         theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5)) +
         theme(legend.position = "none") +
         scale_color_manual(values = colorscale)
+
+emptygraf <- cases %>% ggplot + aes(x=NULL, y = NULL) + labs(x="", y="") + theme_light()
+
+
+(casegraph + deathsgraph) / (deathrategraph + emptygraf)
+
+ggsave("misc/covid_and_election_byperiod.pdf", width = 11, heigh = 8)
