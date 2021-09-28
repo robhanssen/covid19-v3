@@ -129,7 +129,7 @@ statepop <- us_casesdeaths %>%
 
 # define constants
 
-casesperelection <- us_casesdeaths %>% mutate(stage = ifelse(date < cuttoffdate, "early", "late"), stage = factor(stage, levels = c("early", "late"))) %>%
+casesperelection <- us_casesdeaths %>% mutate(stage = ifelse(date < cuttoffdate, "Before July 2020", "After July 2020"), stage = factor(stage, levels = c("Before July 2020", "After July 2020"))) %>%
         inner_join(electionresults) %>%
         group_by(county, state, trumpvictory, stage) %>%
         summarize(cases = sum(cases), 
@@ -143,7 +143,7 @@ casesperelection <- us_casesdeaths %>% mutate(stage = ifelse(date < cuttoffdate,
                   deathsper100k = deaths / population * 1e5
                   )
 
-stagecolor = c("early" = "darkgreen", "late" = "purple")
+stagecolor = c("Before July 2020" = "darkgreen", "After July 2020" = "purple")
 colors = c("<25%" = "blue", "25-50%" = "#F09620", "50-75%" = "#e300f8", ">75%" = "red")
 
 casesperelection %>% 
@@ -152,10 +152,10 @@ casesperelection %>%
         # geom_bar(stat = "identity", position = "dodge") +
         geom_col() + 
         labs(title = "What happens when virus response is politicized?",
-             fill = "Pandemic stage",   
+             fill = "Pandemic stage",
              x = "Percentage of votes for Trump in 2020 elections",
-             y = "Cumulative COVID-19 deaths per 100,000\nafter Election Day 2020",
-             caption = paste0("COVID-19 deaths split at July 1st, 2020 from Mar 2020 until ", format(today(), format = "%b %d, %Y"))) +
+             y = "Cumulative COVID-19 deaths per 100,000",
+             caption = paste0("COVID-19 deaths from Mar 2020 until ", format(today(), format = "%b %d, %Y"), "; split at July 1st 2020")) +
         theme_light() +
         facet_wrap(~stage) +
         scale_y_continuous(breaks = 50 * 1:10) +
