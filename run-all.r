@@ -19,3 +19,7 @@ if (lastreadglobal != today()) {
 
 source("process_global_data.r")
 source("worldmodels.r")
+
+# misc. script runs
+source("misc/covid_and_2020elections.r")
+source("misc/comparison_of_countries_and_states.r")
