@@ -1,4 +1,4 @@
-library(tidyverse) 
+library(tidyverse)
 library(lubridate)
 library(zoo)
 library(broom)
@@ -22,12 +22,12 @@ totalcovidbystate <- us_casesdeaths %>%
                         deathsper100k = deaths / population * 1e5,
                         )
 
-totalcovidbystate %>% 
+totalcovidbystate %>%
         arrange(-casesper100k) %>%
         top_n(20)
 
 
-totalcovidbystate %>% 
+totalcovidbystate %>%
         arrange(-deathsper100k) %>%
         top_n(20)
 
@@ -70,4 +70,3 @@ ggplot(data = countylevelmap) +
                              midpoint = cases_midlevel)
 
 ggsave("maps/usmap_covidcases.png")
-
