@@ -57,6 +57,7 @@ uscases_twoweeks <-
         filter(!is.na(population)) %>%
         filter(population > min_country_population) %>%
         mutate(countyid = paste(county, state, sep = ", ")) %>%
+        arrange(countyid, date) %>%
         group_by(countyid) %>%
         nest() %>%
         mutate(deathmodel = map(data, deathsmodel),
