@@ -6,7 +6,7 @@ source("config.r")
 theme_set(theme_light())
 
 # main data is called global_casesdeaths
-load("Rdata/us_casesdeaths.Rdata") 
+load("Rdata/us_casesdeaths.Rdata")
 
 
 statepop <- us_casesdeaths %>% 
