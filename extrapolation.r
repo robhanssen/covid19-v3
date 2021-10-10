@@ -19,7 +19,7 @@ find_value <- function(x,y,target=c(0, 2,5,10)) {
 #  extrapolocation for SC data
 # 
 
-FILTERDATE = as.Date("2021-03-15")
+FILTERDATE = as.Date("2021-08-15")
 
 us_casesdeaths %>% filter(state=="South Carolina", date>FILTERDATE) %>%
                         group_by(date) %>%
