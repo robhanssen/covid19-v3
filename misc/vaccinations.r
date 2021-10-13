@@ -39,21 +39,24 @@ scatterplot <-
     geom_smooth(method = "loess", fullrange = TRUE, se = FALSE, color = "black", lty = 2) +
     labs (x = "Percentage votes for Trump",
           y = "First dose of vaccines received",
-          title = paste("Vaccination status on ", date)) +
+        #   title = paste("Vaccination status on ", date)
+          ) +
     theme_light() +
     theme(legend.position = "none")
 
 barplot <-
     vax %>%
     group_by(per_gop_discrete) %>%
-    summarise(vax_av = mean(dose1)/100) %>%
+    summarise(vax_av = mean(dose1)/100, sd = sd(dose1)/100, n = n(), err = sd/sqrt(n)*qt(0.05/2, df = n, lower.tail = F), ymi = vax_av - err, yma = vax_av + err) %>%
     ggplot() +
     aes(per_gop_discrete, vax_av) + 
     geom_col(aes(fill = per_gop_discrete)) +
+    geom_errorbar(aes(ymin = ymi, ymax = yma), width = .2)  +
     scale_y_continuous(labels = scales::percent_format(), breaks = .2 * 0:5, limits = c(NA, 1)) +
     labs(x = "Votes for Trump in 2020 (nearest 10%)",
          y = "Average vaccination rate (first dose)",
-         title = paste("Vaccination status on ", date)) +
+         title = paste("Vaccination status on ", date),
+         caption = "Error bar indicate 95% confidence interval") +
     scale_fill_manual(values = colorscale) +
     theme_light() +
     theme(legend.position = "none")
