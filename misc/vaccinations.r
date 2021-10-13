@@ -1,0 +1,65 @@
+library(tidyverse)
+library(lubridate)
+
+colorscale <- scales::seq_gradient_pal("blue", "red", "Lab")(seq(0,1,length.out=10))
+
+vaccinations <- read_csv("https://data.cdc.gov/resource/8xkx-amqh.csv?&$limit=4000") %>%
+        filter(date == max(date))
+
+electionresults = read_csv("sources/2020electionresults.csv") %>%
+        rename(fips = "county_fips") %>%
+        select(fips, per_gop) %>%
+        mutate(per_gop_discrete = factor(10*floor(per_gop*10))) %>%
+        mutate(fips = ifelse(fips < 10000, paste0("0",as.character(fips)), as.character(fips)))
+
+statenames = tibble(stateabb = state.abb, statename = state.name)
+statenames = bind_rows(statenames, tibble(stateabb = "DC", statename = "District of Columbia"))
+
+vax <-
+    vaccinations %>%
+    select(date, fips, recip_county, recip_state, administered_dose1_pop_pct) %>%
+    mutate(recip_county = str_sub(recip_county, end = -8)) %>%
+    inner_join(statenames, by = c("recip_state" = "stateabb")) %>%
+    mutate(countyid = paste0(recip_county, ", ", statename)) %>%
+    inner_join(electionresults, by = "fips") %>%
+    rename(dose1 = "administered_dose1_pop_pct") %>%
+    filter(dose1 != 0)
+
+date = pivot_wider(vax, c(date)) %>% mutate(date = format(date, format = "%b %d, %Y")) %>% pull(date)
+
+
+scatterplot <-
+    vax %>%
+    ggplot() +
+    aes(per_gop, dose1 / 100) +
+    geom_point(alpha = .7, aes(color = per_gop_discrete)) +
+    scale_color_manual(values = colorscale) +
+    scale_x_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
+    scale_y_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
+    geom_smooth(method = "loess", fullrange = TRUE, se = FALSE, color = "black", lty = 2) +
+    labs (x = "Percentage votes for Trump",
+          y = "First dose of vaccines received",
+          title = paste("Vaccination status on ", date)) +
+    theme_light() +
+    theme(legend.position = "none")
+
+barplot <-
+    vax %>%
+    group_by(per_gop_discrete) %>%
+    summarise(vax_av = mean(dose1)/100) %>%
+    ggplot() +
+    aes(per_gop_discrete, vax_av) + 
+    geom_col(aes(fill = per_gop_discrete)) +
+    scale_y_continuous(labels = scales::percent_format(), breaks = .2 * 0:5, limits = c(NA, 1)) +
+    labs(x = "Votes for Trump in 2020 (nearest 10%)",
+         y = "Average vaccination rate (first dose)",
+         title = paste("Vaccination status on ", date)) +
+    scale_fill_manual(values = colorscale) +
+    theme_light() +
+    theme(legend.position = "none")
+
+library(patchwork)
+
+p <- barplot + scatterplot
+
+ggsave("misc/vaccination-state-by-vote.png", plot = p, width = 12, height = 6)
