@@ -66,3 +66,41 @@ library(patchwork)
 p <- barplot + scatterplot
 
 ggsave("misc/vaccination-state-by-vote.png", plot = p, width = 12, height = 6)
+
+
+# and now for something completely different
+
+load("Rdata/us_casesdeaths.Rdata")
+
+electionresults_pop <- 
+    read_csv("sources/2020electionresults.csv") %>%
+    rename(fips = "county_fips") %>%
+    mutate(countyid = paste(county, state, sep = ", ")) %>%
+    # select(fips, per_gop) %>%
+    mutate(per_gop_discrete = factor(10*floor(per_gop*10))) %>%
+    mutate(fips = ifelse(fips < 10000, paste0("0",as.character(fips)), as.character(fips)))
+
+
+countypop <-
+    us_casesdeaths %>%
+    pivot_wider(c(county, state, population)) %>%
+    mutate(countyid = paste(county, state, sep = ", ")) %>%
+    left_join(electionresults_pop, by = c("countyid"))
+
+countypop %>%
+    filter(!is.na(per_gop_discrete)) %>%
+    ggplot + 
+    aes(x = per_gop_discrete, y = population) + 
+    geom_violin(aes(fill = per_gop_discrete)) + 
+    scale_y_log10(labels = scales::comma_format(), breaks = 10^(3:7)) +
+    labs(x = "Votes for Trump in 2020 (nearest 10%)",
+         y = "County population",
+         #title = paste("Vaccination status on ", date),
+         #caption = "Error bar indicate 95% confidence interval"
+         ) +
+    scale_fill_manual(values = colorscale) +
+    theme_light() +
+    theme(legend.position = "none")
+
+##
+
