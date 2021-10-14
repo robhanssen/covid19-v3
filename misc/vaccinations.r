@@ -102,5 +102,39 @@ countypop %>%
     theme_light() +
     theme(legend.position = "none")
 
+
+countypop %>%
+    group_by(per_gop_discrete) %>%
+    summarize(population = sum(population)) %>%
+    filter(!is.na(per_gop_discrete)) %>%
+    ggplot + 
+    aes(x = per_gop_discrete, y = population) + 
+    geom_col(aes(fill = per_gop_discrete)) + 
+    # scale_y_log10(labels = scales::comma_format(), breaks = 10^(3:7)) +
+    scale_y_continuous(labels = scales::comma_format()) +
+    labs(x = "Votes for Trump in 2020 (nearest 10%)",
+         y = "County population",
+         #title = paste("Vaccination status on ", date),
+         #caption = "Error bar indicate 95% confidence interval"
+         ) +
+    scale_fill_manual(values = colorscale) +
+    theme_light() +
+    theme(legend.position = "none")
+
+
+countypop %>%
+    filter(!is.na(per_gop_discrete)) %>%
+    ggplot + 
+    aes(x = per_gop_discrete) + 
+    geom_bar(aes(fill = per_gop_discrete)) + 
+#    scale_y_log10(labels = scales::comma_format(), breaks = 10^(1:7)) +
+    labs(x = "Votes for Trump in 2020 (nearest 10%)",
+         y = "# of counties",
+         #title = paste("Vaccination status on ", date),
+         #caption = "Error bar indicate 95% confidence interval"
+         ) +
+    scale_fill_manual(values = colorscale) +
+    theme_light() +
+    theme(legend.position = "none")
 ##
 
