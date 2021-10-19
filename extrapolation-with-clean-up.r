@@ -92,7 +92,7 @@ ggplot(data = cdbl_gsp_cleanup) +
     geom_vline(xintercept =  date10, color = "red", lty = 2) + 
     geom_hline(yintercept = 10, color = "black", lty = 2)
 
-#ggsave("projections/covid19-SCGSP-linearpredict14days.pdf", width=11, height=8)
+ggsave("projections/covid19-SCGSP-linearpredict14days.pdf", width=11, height=8)
 
 #
 # 14 day trends in SC
@@ -123,4 +123,4 @@ ggplot(data = cdbl_cleanup) +
     geom_vline(xintercept =  date10, color = "red", lty = 2) + 
     geom_hline(yintercept = 10, color = "black", lty = 2)
 
-#ggsave("projections/covid19-SC-linearpredict14days.pdf", width=11, height=8)
+ggsave("projections/covid19-SC-linearpredict14days.pdf", width=11, height=8)

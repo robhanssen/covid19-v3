@@ -7,7 +7,7 @@ if (lastreadus != today()) {
         }
 
 source("process_us_data.r")
-source("extrapolation.r")
+source("extrapolation-with-clean-up.r")
 source("USstates_models.r")
 
 
