@@ -273,7 +273,7 @@ deathsgraph2 <-
                 facet_wrap(~period, scales = "free_y") + 
                 labs(title = "",
                         x = "Percentage of votes for Trump in 2020 elections",
-                        y = "Cumulative COVID-19 cases per 100,000",
+                        y = "Cumulative COVID-19 deaths per 100,000",
                         caption = paste0("COVID-19 deaths until ", format(today(), format = "%b %d, %Y"))) +
                 theme_light() +
                 expand_limits(y = 0) +
