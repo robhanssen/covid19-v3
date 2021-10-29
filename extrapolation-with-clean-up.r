@@ -34,7 +34,8 @@ cdbl_cleanup <-
     cdbl %>%
         mutate(dow = weekdays(date)) %>%
         filter(!dow %in% c("Saturday", "Sunday")) %>%
-        mutate(ccasesper100k = ifelse(dow == "Monday", casesper100k / 3, casesper100k))
+        mutate(ccasesper100k = ifelse(dow == "Monday", casesper100k / 3, casesper100k)) %>%
+        mutate(cases14 = zoo::rollmeanr(ccasesper100k, 14, na.pad = TRUE))        
 
 # 
 #  extrapolocation for GSP data
@@ -53,7 +54,8 @@ cdbl_gsp_cleanup <-
     cdbl_gsp %>%
         mutate(dow = weekdays(date)) %>%
         filter(!dow %in% c("Saturday", "Sunday")) %>%
-        mutate(ccasesper100k = ifelse(dow == "Monday", casesper100k / 3, casesper100k))
+        mutate(ccasesper100k = ifelse(dow == "Monday", casesper100k / 3, casesper100k)) %>%
+        mutate(cases14 = zoo::rollmeanr(ccasesper100k, 14, na.pad = TRUE))
 
 
 #
@@ -72,28 +74,38 @@ predict_gsp <- cdbl_gsp_cleanup %>%
         lm(ccasesper100k ~ date, data=.) %>%
         augment(newdata = next2weeks, interval = "confidence")
 
-date10 = find_value(predict_gsp$date, predict_gsp$.fitted, target=10)
+predict_gsp_milliken <- cdbl_gsp_cleanup %>%
+        filter(date >= twoweeksago) %>%
+        lm(cases14 ~ date, data=.) %>%
+        augment(newdata = next2weeks, interval = "confidence")
 
+date10 = find_value(predict_gsp_milliken$date, predict_gsp_milliken$.upper, target=10)
+
+maskmandate = format(date10, format= "%B %d")
+
+gspplot <-
 ggplot(data = cdbl_gsp_cleanup) +
     aes(x = date, y = ccasesper100k) +
     geom_point() +
-    geom_line(data = cdbl_gsp, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "right")), color = "red") +
-    geom_line(data = cdbl_gsp, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "center")), color = "red", lty = 2) +        
-    expand_limits(x = max(cdbl_gsp$date + 20)) +
+    geom_line(aes(y = zoo::rollmean(ccasesper100k, 14, na.pad = TRUE, align = "right")), color = "blue", lty = 2) +
+    geom_line(aes(y = zoo::rollmean(ccasesper100k, 14, na.pad = TRUE, align = "center")), color = "darkgreen", lty = 2) +        
+    expand_limits(x = max(cdbl_gsp_cleanup$date + 20)) +
     scale_y_continuous(limit = c(0, NA), breaks = seq(0, 200, 10)) +
     scale_x_date(breaks = "2 weeks", date_labels = "%b %d") +
-    geom_line(data = predict_gsp, aes(y = .fitted), color = "darkgreen") + 
-    geom_ribbon(data = predict_gsp, aes(y = .fitted, ymin = .lower, ymax = .upper), fill = "green", alpha = 0.4) +
+    geom_line(data = predict_gsp, aes(y = .fitted), color = "darkgreen", lty = 1) + 
+    geom_ribbon(data = predict_gsp, aes(y = .fitted, ymin = .lower, ymax = .upper), fill = "darkgreen", alpha = 0.4) +
+    geom_line(data = predict_gsp_milliken, aes(y = .fitted), color = "blue") + 
+    geom_ribbon(data = predict_gsp_milliken, aes(y = .fitted, ymin = .lower, ymax = .upper), fill = "blue", alpha = 0.4) +
     labs(x = "Date",
         y = "Cases per 100k population",
         title = "Cases in GSP Area (South Carolina)",
-        subtitle = "Cases per 100,000",
-        caption = "Red line: rolling mean (14 days)\nGreen line: prediction based on 14 previous days") + 
+        subtitle = paste("Mask mandate expected to change on", maskmandate),
+        caption = "Blue line: rolling mean (14 days) prediction\nGreen line: prediction based on 14 previous days") + 
     geom_vline(xintercept =  date10, color = "red", lty = 2) + 
+    geom_vline(xintercept =  today(), color = "gray50", lty = 2) + 
     geom_hline(yintercept = 10, color = "black", lty = 2)
 
-ggsave("projections/covid19-SCGSP-linearpredict14days.pdf", width=11, height=8)
-
+ggsave("projections/covid19-SCGSP-linearpredict14days.pdf", width=11, height=8, plot = gspplot)
 #
 # 14 day trends in SC
 #
@@ -103,24 +115,40 @@ predict_sc <- cdbl_cleanup %>%
         lm(ccasesper100k ~ date, data=.) %>%
         augment(newdata = next2weeks, interval = "confidence")
 
-date10 = find_value(predict_sc$date, predict_sc$.fitted, target=10)
+predict_sc_milliken <- cdbl_cleanup %>%
+        filter(date >= twoweeksago) %>%
+        lm(cases14 ~ date, data=.) %>%
+        augment(newdata = next2weeks, interval = "confidence")
 
+date10 = find_value(predict_sc_milliken$date, predict_sc_milliken$.upper, target=10)
+
+maskmandate = format(date10, format= "%B %d")
+
+scplot <-
 ggplot(data = cdbl_cleanup) +
     aes(x = date, y = ccasesper100k) +
     geom_point() +
-    geom_line(data = cdbl, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "right")), color = "red") +
-    geom_line(data = cdbl, aes(y = zoo::rollmean(casesper100k, 14, na.pad = TRUE, align = "center")), color = "red", lty = 2) +        
-    expand_limits(x = max(cdbl$date + 20)) +
+    geom_line(aes(y = zoo::rollmean(ccasesper100k, 14, na.pad = TRUE, align = "right")), color = "blue", lty = 2) +
+    geom_line(aes(y = zoo::rollmean(ccasesper100k, 14, na.pad = TRUE, align = "center")), color = "darkgreen", lty = 2) +        
+    expand_limits(x = max(cdbl_gsp_cleanup$date + 20)) +
     scale_y_continuous(limit = c(0, NA), breaks = seq(0, 200, 10)) +
     scale_x_date(breaks = "2 weeks", date_labels = "%b %d") +
-    geom_line(data = predict_sc, aes(y = .fitted), color = "darkgreen") + 
-    geom_ribbon(data = predict_sc, aes(y = .fitted, ymin = .lower, ymax = .upper), fill = "green", alpha = 0.4) +
+    geom_line(data = predict_sc, aes(y = .fitted), color = "darkgreen", lty = 1) + 
+    geom_ribbon(data = predict_sc, aes(y = .fitted, ymin = .lower, ymax = .upper), fill = "darkgreen", alpha = 0.4) +
+    geom_line(data = predict_sc_milliken, aes(y = .fitted), color = "blue") + 
+    geom_ribbon(data = predict_sc_milliken, aes(y = .fitted, ymin = .lower, ymax = .upper), fill = "blue", alpha = 0.4) +
     labs(x = "Date",
         y = "Cases per 100k population",
-        title = "Cases in South Carolina",
-        subtitle = "Cases per 100,000",
-        caption = "Red line: rolling mean (14 days)\nGreen line: prediction based on 14 previous days") + 
+        title = "Cases in SC",
+        subtitle = paste("Mask mandate expected to change on", maskmandate),
+        caption = "Blue line: rolling mean (14 days) prediction\nGreen line: prediction based on 14 previous days") + 
     geom_vline(xintercept =  date10, color = "red", lty = 2) + 
+    geom_vline(xintercept =  today(), color = "gray50", lty = 2) + 
     geom_hline(yintercept = 10, color = "black", lty = 2)
 
-ggsave("projections/covid19-SC-linearpredict14days.pdf", width=11, height=8)
+ggsave("projections/covid19-SC-linearpredict14days.pdf", width=11, height=8, plot = scplot)
+
+library(patchwork)
+
+p = scplot + gspplot
+ggsave("projections/covid19-SCGSP-linearpredict14days.png", width=12, height=6, plot = p)
