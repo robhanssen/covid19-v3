@@ -24,8 +24,8 @@ global_cases <- global_cases_raw %>%
 
 global_cases_growth <- global_cases_raw %>% 
                      dailydifference(., infocols) %>% 
-                     tidydata(., dataname="cases", exclusionvector=infocolumnnames) %>% 
-                     mutate(time=time+1)
+                     tidydata(., dataname="cases", exclusionvector=infocolumnnames) #%>% 
+                     #mutate(time=time+1)
 
 #
 # import global deaths via web API
@@ -39,8 +39,8 @@ global_deaths <- global_deaths_raw %>%
 
 global_deaths_growth <- global_deaths_raw %>% 
                      dailydifference(., infocols) %>%
-                     tidydata(., dataname="deaths", exclusionvector=infocolumnnames) %>% 
-                     mutate(time=time+1)
+                     tidydata(., dataname="deaths", exclusionvector=infocolumnnames) #%>% 
+                     #mutate(time=time+1)
 
 # combining all global data
 global_casesdeaths <- global_cases_growth %>% 

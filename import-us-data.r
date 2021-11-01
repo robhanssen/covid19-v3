@@ -25,8 +25,8 @@ us_cases <- us_cases_raw %>%
 
 us_cases_growth <- us_cases_raw %>%
                      dailydifference(., infocols) %>% 
-                     tidydata(., dataname="cases", exclusionvector=infocolumnnames) %>%
-                     mutate(time = time + 1)
+                     tidydata(., dataname="cases", exclusionvector=infocolumnnames) #%>%
+                     #mutate(time = time + 1)
 # 
 # import US deaths via web API
 # 
@@ -41,8 +41,8 @@ us_deaths <-  us_deaths_raw %>%
 
 us_deaths_growth <- us_deaths_raw %>% 
                      dailydifference(., infocols) %>%
-                     tidydata(., dataname="deaths", exclusionvector=infocolumnnames) %>%
-                     mutate(time = time + 1)
+                     tidydata(., dataname="deaths", exclusionvector=infocolumnnames) #%>%
+                     #mutate(time = time + 1)
 
 
 
