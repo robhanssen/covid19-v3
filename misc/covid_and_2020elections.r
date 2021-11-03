@@ -270,7 +270,8 @@ deathsgraph2 <-
                 aes(trumpvictory, deathsper100k, color = trumpvictory, group = TRUE) +
                 geom_point() +
                 geom_line()  +
-                facet_wrap(~period, scales = "free_y") + 
+                #facet_wrap(~period, scales = "free_y", ncol = 4) + 
+                facet_wrap(~period, ncol = 4) +                 
                 labs(title = "",
                         x = "Percentage of votes for Trump in 2020 elections",
                         y = "Cumulative COVID-19 deaths per 100,000",
@@ -284,3 +285,25 @@ deathsgraph2 <-
                 scale_color_manual(values = colorscale)
 
 ggsave("misc/covid_and_election_byperiod_deaths.pdf", width = 11, height = 8, plot = deathsgraph2)
+
+deathsgraph3 <-
+cases %>% mutate(period = yq(period)) %>% #filter(period != "2020Q1") %>%
+        ggplot +
+        aes(period, deathsper100k, color = trumpvictory, group = TRUE) +
+        geom_point() +
+        geom_line()  +
+        #facet_wrap(~period, scales = "free_y", ncol = 4) + 
+        facet_wrap(~trumpvictory, ncol = 5) +                 
+        labs(title = "COVID-19 death rate by country average vote for Trump",
+                x = "Date",
+                y = "Cumulative COVID-19 deaths per 100,000",
+                caption = paste0("COVID-19 deaths until ", format(today(), format = "%b %d, %Y"))) +
+        theme_light() +
+        expand_limits(y = 0) +
+        # scale_fill_manual(values = stagecolor) +
+        # scale_y_continuous(breaks = 50 * 0:10, limits = c(0, NA)) +
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5)) +
+        theme(legend.position = "none") +
+        scale_color_manual(values = colorscale)
+
+ggsave("misc/covid_and_election_bydate_deaths.pdf", width = 11, height = 8, plot = deathsgraph3)
