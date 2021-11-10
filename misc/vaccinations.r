@@ -28,10 +28,19 @@ vax <-
 date = pivot_wider(vax, c(date)) %>% mutate(date = format(date, format = "%b %d, %Y")) %>% pull(date)
 
 
+spavax <-
+    vax %>%
+        filter(recip_state == "SC",
+               recip_county %in% c("Spartanburg", "Greenville", "Anderson", "Cherokee", "York")
+               ) %>%
+        mutate(label = recip_county)
+
+
 scatterplot <-
     vax %>%
+    mutate(label = "") %>%
     ggplot() +
-    aes(per_gop, dose1 / 100) +
+    aes(per_gop, dose1 / 100, label = label) +
     geom_point(alpha = .7, aes(color = per_gop_discrete)) +
     scale_color_manual(values = colorscale) +
     scale_x_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
@@ -42,7 +51,9 @@ scatterplot <-
         #   title = paste("Vaccination status on ", date)
           ) +
     theme_light() +
-    theme(legend.position = "none")
+    theme(legend.position = "none") + 
+    geom_point(data = spavax, size = 3, color = "darkgreen") + 
+    ggrepel::geom_label_repel(data = spavax)
 
 barplot <-
     vax %>%
