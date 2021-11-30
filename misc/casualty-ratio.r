@@ -103,13 +103,34 @@ us_data <-
     # group_by(prez) %>%
     mutate(cdeaths = cumsum(deaths),
            ccases = cumsum(cases))
-    
+
+labels <-
+    global_casesdeaths %>%
+    rename(country = "Country/Region") %>%
+    filter(country == "US") %>%
+    mutate(prez = ifelse(date > as.Date("2021-07-01"), "Biden", "Trump")) %>%
+    group_by(prez) %>%
+    summarize(total_cases = sum(cases), 
+              total_deaths = sum(deaths),
+              .groups = "drop") %>%
+    mutate(date = as.Date(c("2021-10-01","2020-12-01")),
+            ccases = c(550000,550000))
+
+
 us_data %>%
-    ggplot + 
+    ggplot +
     aes(date, cdeaths, color = prez) + geom_point() + 
     scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
     scale_y_continuous(labels = scales::comma_format(scale = 1e-3, suffix = "K")) + 
-    geom_vline(xintercept = as.Date("2021-04-01"), lty = 2, color = "gray50")
+    geom_vline(xintercept = as.Date("2021-07-01"), lty = 2, color = "gray50") + 
+    labs(x = "Date",
+         y = "Cumulative deaths attributed to COVID-19",
+         caption = "Source: JHU") + 
+    geom_label(data = labels, aes(color = prez, x = date, y = ccases, label = scales::comma(total_deaths))) + 
+    scale_color_manual(values = c("Trump" = "red", "Biden" = "blue")) + 
+    theme(legend.position = "none")
+
+ggsave("misc/covid-deathtoll-by-president.png", width = 6, height = 6)
 
 dc_ratio = 50
 
