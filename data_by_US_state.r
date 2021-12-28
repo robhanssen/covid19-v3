@@ -36,7 +36,7 @@ us_casesdeaths %>% filter(state==selected_state) %>%
                                   ) %>% ungroup() -> casesdeathsbylocation
 
 
-casesdeathsbylocation %>% filter(date > today() %m-% months(3)) %>%
+casesdeathsbylocation %>% filter(date > today() %m-% months(18)) %>%
                 ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                         geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
                         scale_y_continuous(limit=c(0,400), breaks=c(0,2,5,10,20, 50,100*1:10), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
