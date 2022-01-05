@@ -46,3 +46,30 @@ us_casesdeaths %>%
     geom_point() +
     # scale_y_log10(labels = scales::comma_format())
     scale_y_continuous(labels = scales::comma_format())
+
+    #
+    # president
+    #
+
+us_casesdeaths %>%
+    group_by(date) %>%
+    summarize(cases = sum(cases),
+              deaths = sum(deaths),
+              .groups = "drop") %>%
+    mutate(president = case_when(date <= as.Date("2021-01-20") ~ "Trump",
+                                 TRUE ~ "Biden"
+                                 ),
+            cumcases = cumsum(cases),
+            cumdeaths = cumsum(deaths)
+           ) %>%
+    ggplot + 
+    aes(x = date, y = cumdeaths, color = president) + 
+    scale_color_manual(values = c("Trump" = "red", "Biden" = "blue")) +
+    geom_line() + 
+    scale_y_continuous(labels = scales::comma_format(), breaks = 1e5 * 0:100) +
+    scale_x_date(date_breaks = "6 months", date_labels = "%b\n%Y") + 
+    labs(x = "Date",
+         y = "Cumulative COVID-19 deaths in the US",
+         color = "President")
+    
+ 

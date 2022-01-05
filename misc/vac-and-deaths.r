@@ -46,7 +46,8 @@ vax %>%
     ggplot +
         aes(box, deathper100k, group = TRUE)  +
         geom_line() + 
-        scale_y_continuous(limit = c(0, NA))
+        scale_y_continuous(limit = c(0, NA)) + 
+        labs(x = "Vaccination rate (%)")
 
 countycases <-
     us_casesdeaths %>% 
@@ -66,6 +67,7 @@ vax %>%
     ggplot +
         aes(box, casesper100k, group = TRUE)  +
         geom_line() + 
-        scale_y_continuous(breaks = 1000 * 0:10, limits = c(0, NA))
+        scale_y_continuous(breaks = 1000 * 0:10, limits = c(0, NA)) + 
+        labs(x = "Vaccination rate (%)")
 
 
