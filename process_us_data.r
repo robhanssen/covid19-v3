@@ -35,6 +35,50 @@ totalcases = sum(casesdeaths$cases, na.rm=T)
 totaldeaths = sum(casesdeaths$deaths, na.rm=T)
 totalcasecomment = paste("Total US cases:",totalcases,"\nTotal casualties:", totaldeaths)
 
+#
+# absolute daily cases/deaths
+#
+x_correction <- 200
+
+td <- lubridate::today() - years(c(0:10))
+
+casesdeaths %>%
+        filter(date >= "2020-02-01") %>%
+        ggplot +
+        aes(date, cases) +
+        geom_line(color = "blue", linetype = "dotted") +
+        geom_line(aes(y = rollmean(cases, avdays, na.pad = TRUE)),
+                      size = 2,
+                      color = "blue") +
+        scale_y_continuous(labels = scales::comma_format(),
+                           breaks = 1e5 * 0:100,
+                           sec.axis = sec_axis(~ . / x_correction,
+                                               name = "Daily deaths",
+                                               breaks = 1000 * seq(0, 15, 1))) +
+        scale_x_date(date_breaks = "3 months",
+                     date_labels = "%b\n%Y") +
+        labs(x = "Date",
+             y = "Daily incremental number of confirmed cases",
+             title = paste("US daily cases and deaths with",
+                           avdays,
+                           "days average line"),
+                caption = "Data from JHU\nDotted vertical line indicates same data last years") +
+        geom_line(aes(date, x_correction * deaths),
+                  color = "red",
+                  linetype = "dotted") +
+        geom_line(aes(y = rollmean(x_correction * deaths,
+                                   avdays,
+                                   na.pad = TRUE
+                                   )
+                       ),
+                  size = 2,
+                  color = "red") +
+        geom_vline(xintercept = td, lty = 3, color = "gray50") +
+        theme_light()
+
+ggsave("graphs/covid19-us-absolute-cases-and-death.pdf",
+        width = 11,
+        height = 8)
 
 casesdeaths %>% filter( date>="2020-02-01") %>%
                 ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
