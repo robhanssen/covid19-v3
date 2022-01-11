@@ -82,7 +82,7 @@ ggsave("graphs/covid19-us-absolute-cases-and-death.pdf",
 
 casesdeaths %>% filter( date>="2020-02-01") %>%
                 ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
-                        scale_y_continuous(breaks=c(0,2,5,10,20,50,100,150), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + #scale_y_log10(limit=c(10,100000))+ 
+                        scale_y_continuous(breaks=c(0,2,5,10,20,50,100,150, 100*2:10), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + #scale_y_log10(limit=c(10,100000))+ 
                         scale_x_date(date_breaks="3 months", date_labels = "%b %d") + #facet_wrap(~location) + 
                         labs(caption=capt) + xlab("Date") + ylab("Daily incremental number of confirmed cases or deaths") +
                         ggtitle(paste("US daily cases and deaths with", avdays,"days average line")) + 
@@ -115,7 +115,7 @@ for(region in regionlist$location)
         casesdeathsbylocation %>% filter( location == region) %>%
                 ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                         geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
-                        scale_y_continuous(breaks=c(0,2,5,10,20,50,100,150), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
+                        scale_y_continuous(breaks=c(0,2,5,10,20,50,100,150, 100*2:10), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
                         scale_x_date(date_breaks="3 months", date_labels = "%b %d") + 
                         labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
                         ggtitle(paste(region, "daily cases and deaths with", avdays,"days average line")) + 
@@ -173,7 +173,7 @@ casesdeathsbystate %>% filter(date > datecutoff) %>% group_by(state) %>%
                                 ) -> ratesbystate7days
 
 ratesbystate7days %>% ggplot + aes(x=fct_reorder(state,casesper100k), y=casesper100k, fill=level) + 
-                               scale_y_continuous(breaks=c(2,5,10,20,50,100)) +
+                               scale_y_continuous(breaks=c(2,5,10,20,50,100 * 1:20)) +
                                geom_bar(stat="identity") + 
                                labs(x="State", y="Daily new infection per 100,000 population", caption=caption) +
                                coord_flip() + 
@@ -228,7 +228,7 @@ us_casesdeaths %>% filter(state=="South Carolina") %>%
 casesdeathsbylocation %>% filter(date > today() %m-% months(6)) %>%
                 ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                         geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
-                        scale_y_continuous(limit=c(0,150), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
+                        scale_y_continuous(limit=c(0,NA), sec.axis = sec_axis(~ ./correction, breaks=seq(0,10,1))) + 
                         scale_x_date(date_breaks="3 months", date_labels = "%b %d") + 
                         labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
                         ggtitle(paste("South Carolina daily cases and deaths with", avdays,"days average line")) + 
@@ -268,7 +268,7 @@ us_casesdeaths %>% filter(state=="South Carolina") %>%
 casesdeathsbylocation %>% #filter( location == region) %>%
                 ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                         geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
-                        scale_y_continuous(breaks=c(0,2,5,10,20,50,100,150), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
+                        scale_y_continuous(breaks=c(0,2,5,10,20,50,100,150, 100 * 2:20), limits = c(0,NA), sec.axis = sec_axis(~ ./correction, breaks=seq(0,10,1))) + 
                         scale_x_date(date_breaks="1 months", date_labels = "%b %d") + 
                         labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
                         ggtitle(paste("Greenville/Spartanburg daily cases and deaths with", avdays,"days average line")) + 
