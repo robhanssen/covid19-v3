@@ -2,9 +2,11 @@ library(tidyverse)
 library(lubridate)
 library(zoo)
 library(scales)
+library(patchwork)
 theme_set(theme_light())
 
-cutoff_date <- as.Date("2021-02-01")
+lo_cutoff_date <- as.Date("2021-04-01")
+hi_cutoff_date <- as.Date("2021-11-01")
 
 load("Rdata/us_casesdeaths.Rdata")
 
@@ -29,7 +31,7 @@ hospitalization <-
 
 reg_hosp <-
     hospitalization %>%
-    filter(date > cutoff_date) %>%
+    filter(date > lo_cutoff_date) %>%
     filter(country == "United States")
 
 ts <- 1:50
@@ -42,15 +44,15 @@ for (time_shift in ts) {
         summarize(cases = sum(cases),
                 deaths = sum(deaths),
                 .groups = "drop") %>%
-        filter(date > cutoff_date) %>%
+        filter(date > lo_cutoff_date) %>%
         mutate(date = date - time_shift) %>%
         mutate(deaths_av = zoo::rollmean(deaths, 7, na.pad = TRUE))
 
     reg_data <-
         inner_join(reg_hosp, reg_death, by = "date")
 
-    rs  <- lm(deaths_av ~ daily_icu_occupancy + 0,
-              data = reg_data %>% filter(date > as.Date("2021-02-01"), date < as.Date("2021-11-01"))) %>%
+    rs  <- lm(deaths_av ~ daily_hospital_occupancy + 0,
+              data = reg_data %>% filter(date > lo_cutoff_date, date < hi_cutoff_date)) %>%
             broom::glance() %>%
             pull(r.squared)
 
@@ -72,16 +74,16 @@ reg_death <-
 reg_data <-
     inner_join(reg_hosp, reg_death, by = "date")
 
-fct  <- lm(deaths_av ~ daily_icu_occupancy + 0,
-              data = reg_data %>% filter(date > as.Date("2021-02-01"), date < as.Date("2021-11-01"))) %>%
+fct  <- lm(deaths_av ~ daily_hospital_occupancy + 0,
+              data = reg_data %>% filter(date > lo_cutoff_date, date < hi_cutoff_date)) %>%
             broom::tidy() %>%
-            filter(term == "daily_icu_occupancy") %>%
+            filter(term == "daily_hospital_occupancy") %>%
             pull(estimate)
 
 fct <- 1 / fct
 
-rsq  <- lm(deaths_av ~ daily_icu_occupancy + 0,
-              data = reg_data %>% filter(date > as.Date("2021-02-01"), date < as.Date("2021-11-01"))) %>%
+rsq  <- lm(deaths_av ~ daily_hospital_occupancy + 0,
+              data = reg_data %>% filter(date > lo_cutoff_date, date < hi_cutoff_date)) %>%
             broom::glance() %>%
             pull(r.squared)
 
@@ -91,15 +93,18 @@ fit_summary <- paste0("Date shift: ", optimal_ts, "\nFactor:", round(fct, 3), "\
 
 datafit <-
     reg_data %>%
-    mutate(color = case_when(date > as.Date("2021-11-02") ~ "test", TRUE ~ "training")) %>%
+    mutate(color = case_when(date > hi_cutoff_date ~ "test", TRUE ~ "training")) %>%
     ggplot +
-    aes(daily_icu_occupancy, deaths_av, color = color) +
+    aes(daily_hospital_occupancy, deaths_av, color = color) +
     geom_point() +
     geom_abline(slope = 1/fct, intercept = 0) + 
     scale_color_manual(values = c("training" = "blue", "test" = "red")) +
     labs(caption = "Data before Nov 1, 2021 (in blue) is used as training data.\nData after Nov 1, 2021 (in red) is test data") + 
-    annotate("label", x = 5000, y = 1800, label = fit_summary, hjust = 0) +
-    theme(legend.position = "none")
+    annotate("label", x = 0, y = 1800, label = fit_summary, hjust = 0) +
+    theme(legend.position = "none") + 
+    scale_x_continuous(labels = scales::comma_format(), limits = c(0, NA)) + 
+    scale_y_continuous(labels = scales::comma_format(), limits = c(0, NA))
+
 
 hd_conversion <- fct
 deaths_shift <- optimal_ts
@@ -110,11 +115,11 @@ timeplot <-
     filter(date > cutoff_date) %>%
     filter(country == "United States") %>%
     ggplot +
-    aes(x = date, y = daily_icu_occupancy) +
+    aes(x = date, y = daily_hospital_occupancy) +
     geom_point() +
     scale_x_date(date_breaks = "2 month", date_labels = "%b\n%Y") +
     scale_y_continuous(labels = comma_format(),
-                       breaks = 1e4 * 0:100,
+                       breaks = 5e4 * 0:100,
                        limits = c(0, NA),
                        sec.axis = sec_axis(~ . / hd_conversion,
                                            name = "COVID-19 deaths",
@@ -122,19 +127,32 @@ timeplot <-
                                            labels = scales::comma_format())
                        ) +
     labs(x = "Date",
-         y = "Hospital ICU beds in use for COVID-19",
-         title = "COVID-19 ICU hospitalization and deaths in the United States",
-         caption = paste0("Deaths (in red; 7-day daily mean) are shifted back by ", deaths_shift, " days and peak height is increased by factor ", round(hd_conversion, 3),"\n",sources)) + 
+         y = "Hospital beds in use for COVID-19",
+         title = "COVID-19 hospitalization and deaths in the United States",
+         caption = paste0("Deaths (in red; 7-day daily mean) are shifted back by ", deaths_shift, " days and peak height is increased by factor ", round(hd_conversion, 2),"\n",sources)) + 
     geom_point(data = casesdeaths,
                aes(x = date - days(deaths_shift),
                    y = hd_conversion * zoo::rollmean(deaths, averaging_window, na.pad = TRUE)),
                color = "red") + 
-    geom_vline(xintercept = as.Date("2021-11-01"), lty = 2, color = "gray50")
+    geom_vline(xintercept = lo_cutoff_date, lty = 2, color = "gray50") +
+    geom_vline(xintercept = hi_cutoff_date, lty = 2, color = "gray50") + 
+    annotate("label", x = lo_cutoff_date + (hi_cutoff_date - lo_cutoff_date)/2 , y = 0, label = "training data", vjust = 0)
 
-ggsave("hospitalizations/us-hosp-vs-deaths.png", width = 8, height = 6, plot = timeplot)
+#ggsave("hospitalizations/us-hosp-vs-deaths.png", width = 8, height = 6, plot = timeplot)
 
-library(patchwork)
+rsqplot <-
+    tibble(x = ts, y = rsc) %>%
+    ggplot() +
+    aes(x, y) +
+    aes(x, y) +
+    geom_line() +
+    geom_point() +
+    scale_x_continuous(breaks = seq(0, max(ts), 10)) +
+    scale_y_continuous(breaks = 0.1 * 0:10, limits = c(NA, 1.01)) +
+    labs(x = "Date shift (in days)",
+         y = "R.squared of regression line") + 
+    geom_point(data = tibble(x = optimal_ts, y = rsq), shape = 3, size = 15, color = "red")
 
-combined <- timeplot / datafit
+combined <- timeplot / (rsqplot +datafit)
 
-ggsave("hospitalizations/us-modelfit.png", width = 8, height = 10, plot = combined)
+ggsave("hospitalizations/us-modelfit-hospitalbed.png", width = 10, height = 10, plot = combined)
