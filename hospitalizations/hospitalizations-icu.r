@@ -18,7 +18,7 @@ casesdeaths <-
     summarize(cases = sum(cases),
               deaths = sum(deaths),
               .groups = "drop") %>%
-    filter(date > cutoff_date)
+    filter(date > lo_cutoff_date)
 
 hosp_file <- "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/hospitalizations/covid-hospitalizations.csv"
 
@@ -67,7 +67,7 @@ reg_death <-
     summarize(cases = sum(cases),
             deaths = sum(deaths),
             .groups = "drop") %>%
-    filter(date > cutoff_date) %>%
+    filter(date > lo_cutoff_date) %>%
     mutate(date = date - optimal_ts) %>%
     mutate(deaths_av = zoo::rollmean(deaths, 7, na.pad = TRUE))
 
@@ -112,7 +112,7 @@ averaging_window <- 7
 
 timeplot <-
     hospitalization %>%
-    filter(date > cutoff_date) %>%
+    filter(date > lo_cutoff_date) %>%
     filter(country == "United States") %>%
     ggplot +
     aes(x = date, y = daily_icu_occupancy) +

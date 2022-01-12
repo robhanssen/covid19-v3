@@ -18,7 +18,7 @@ casesdeaths <-
     summarize(cases = sum(cases),
               deaths = sum(deaths),
               .groups = "drop") %>%
-    filter(date > cutoff_date)
+    filter(date > lo_cutoff_date)
 
 hosp_file <- "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/hospitalizations/covid-hospitalizations.csv"
 
