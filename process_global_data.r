@@ -213,7 +213,7 @@ for (selected_continent in continentlist)
         casesdeathsbylocation %>% filter(date > today() %m-% months(12)) %>%
                         ggplot + aes(date, casesper100k) + geom_line(color="blue", linetype="dotted") + 
                                 geom_line(aes(y=rollmean(casesper100k,avdays, na.pad=TRUE)), size=2, color="blue") + 
-                                scale_y_continuous(limit=c(0,100), breaks=c(0,2,5,10,20,50,100,150), sec.axis = sec_axis(~ ./correction, breaks=seq(0,5,1))) + 
+                                scale_y_continuous(limit=c(0,NA), breaks=c(0,2,5,10,20,50,100,150, 100 * 2:20), sec.axis = sec_axis(~ ./correction, breaks=seq(0,15,1))) + 
                                 scale_x_date(date_breaks="3 months", date_labels = "%b %d") + 
                                 labs(caption=capt, x="Date", y="Daily incremental number of confirmed cases or deaths") + 
                                 ggtitle(paste(selected_continent, "daily cases and deaths with", avdays,"days average line")) + 
